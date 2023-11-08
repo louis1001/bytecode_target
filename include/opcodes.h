@@ -15,7 +15,7 @@
     X(STR, 0x0E) \
     X(JPT, 0x0B) \
     X(PNT, 0x0F) \
-    X(PCH, 0x10) \
+    X(PCH, 0x20) \
     X(INC, 0x11) \
     X(DEC, 0x12) \
     X(PSH, 0x13) \

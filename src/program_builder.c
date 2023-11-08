@@ -161,5 +161,5 @@ u8 create_label(ProgramBuilder* builder) {
 }
 
 void link_label(ProgramBuilder* builder, u8 addr) {
-    builder->labels[addr] = builder->instructions.count;
+    builder->labels[addr] = builder->instructions.count + 1;
 }
