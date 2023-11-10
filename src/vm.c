@@ -23,6 +23,13 @@ u8 save_string(VM* vm) {
     //          within the code array.
     char* str = (char*) &(vm->program->code[vm->pc]);
 
+    u8 index = vm->current_string++;
+    vm->strings[index] = str;
+
+    return index;
+}
+
+u8 allocate_string(VM* vm, char* str) {
     //      Find the length of the string, plus
     //          the '\0' character.
     unsigned long len = strlen(str);
@@ -44,18 +51,19 @@ u8 save_string(VM* vm) {
     //      Store the string pointer so it can be freed later
     u8 index = vm->current_string++;
     vm->strings[index] = allocated;
+    vm->allocated_strings[vm->current_allocated_string++] = allocated;
 
     return index;
 }
 
 void destroy_vm(VM* vm) {
-    for (int i = 0; i < vm->current_string; i++) {
-        char* ptr = vm->strings[i];
-        #if DEBUG
+    for (int i = 0; i < vm->current_allocated_string; i++) {
+        char* ptr = vm->allocated_strings[i];
+        #if VERBOSE
             printf("INFO: Freeing string %s\n", ptr);
             // flush stdout
             fflush(stdout);
-        #endif // DEBUG
+        #endif // VERBOSE
         
         if(ptr != NULL) {
             free(ptr);
