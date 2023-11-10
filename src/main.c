@@ -29,16 +29,16 @@ int main(void) {
     
     emit_instruction(&pb, EXT);
 
-    Program* program2 = create_program();
-    clone_to_program(&pb, program2);
+    Program program2 = create_program();
+    clone_to_program(&pb, &program2);
 
-    print_program(program2);
+    print_program(&program2);
 
     free_program_builder(&pb);
 
-    execute(program2);
+    // execute(&program2);
 
-    destroy_program(program2, true);
+    destroy_program(&program2);
 
     return 0;
 }

@@ -9,7 +9,7 @@ typedef struct {
 } Program;
 
 void print_program(Program*);
-Program* create_program();
-void destroy_program(Program*, bool and_code);
+Program create_program();
+void destroy_program(Program*);
 
 #endif // PROGRAM_H
