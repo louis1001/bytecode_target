@@ -87,8 +87,8 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
             // Replace the label with the address of the label
             u8 label_index = builder->instructions.data[i + 1];
             u8 label_address = builder->labels[label_index];
-            ignored_bytes += 2;
-            label_address -= ignored_bytes; // Offset the label address by the number of ignored bytes
+            ignored_bytes += 1;
+            label_address -= ignored_bytes + 1; // Offset the label address by the number of ignored bytes
             #if VERBOSE
             printf("INFO: Replacing label index %d with address 0x%x\n", label_index, label_address);
             #endif // DEBUG

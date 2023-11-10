@@ -124,6 +124,7 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case EQU: {
+            printf("[%zx] Checking if equal\n", vm->pc);
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 
@@ -131,6 +132,9 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case LT: {
+            #if VERBOSE
+            printf("[%zx] Checking if less than\n", vm->pc);
+            #endif
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 

@@ -11,22 +11,44 @@ int main(void) {
     // Now with program builder
     ProgramBuilder pb = {0};
     init_program_builder(&pb);
+    
+    u8 label1 = create_label(&pb);
+    u8 label2 = create_label(&pb);
+    u8 label3 = create_label(&pb);
+    u8 label4 = create_label(&pb);
 
+    emit_instruction(&pb, PSH);
+    emit_instruction(&pb, LBL);
+    emit_u8(&pb, label1);
     emit_nop(&pb);
-    emit_push(&pb, 42);
-    emit_push(&pb, 43);
-    emit_instruction(&pb, ADD);
-    u8 label = create_label(&pb);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    link_label(&pb, label1);
 
-    emit_push(&pb, 86);
-    emit_instruction(&pb, EQU);
-    
-    emit_jump_if_true(&pb, label);
-    emit_push(&pb, 0x32);
-    emit_push(&pb, 0x63);
-    emit_instruction(&pb, ADD);
-    emit_instruction(&pb, DBG);
-    
+    emit_instruction(&pb, PSH);
+    emit_instruction(&pb, LBL);
+    emit_u8(&pb, label2);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    link_label(&pb, label2);
+
+    emit_instruction(&pb, PSH);
+    emit_instruction(&pb, LBL);
+    emit_u8(&pb, label3);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    link_label(&pb, label3);
+
+    emit_instruction(&pb, PSH);
+    emit_instruction(&pb, LBL);
+    emit_u8(&pb, label4);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    emit_nop(&pb);
+    link_label(&pb, label4);
+
     emit_instruction(&pb, EXT);
 
     Program program2 = create_program();

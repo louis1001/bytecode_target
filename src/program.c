@@ -18,19 +18,12 @@ void print_program(Program* p) {
     }
 }
 
-Program* create_program() {
-    Program* p = malloc(sizeof(Program));
-    if (p == NULL) {
-        ERROR("Could not allocate the memory for program");
-    }
+Program create_program() {
+    Program p = {0};
 
     return p;
 }
 
-void destroy_program(Program* program, bool and_code) {
-    if (and_code) {
-        free(program->code);
-    }
-
-    free(program);
+void destroy_program(Program* program) {
+    free(program->code);
 }
