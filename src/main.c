@@ -24,7 +24,7 @@ int main(void) {
 
     emit_plain_instruction(&pb, DUP);
 
-    emit_push(&pb, 100);
+    emit_push(&pb, 0xff);
     emit_plain_instruction(&pb, EQU);
 
     emit_jump_if_false(&pb, loop_label);

@@ -4,6 +4,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif // DEBUG
+#ifndef VERBOSE
+#define VERBOSE 0
+#endif // DEBUG
+
+#define LOG(x...) do { if (DEBUG) { printf("INFO: " x); } } while(0)
+#define VERBOSE_LOG(x...) do { if (VERBOSE) { printf("INFO: " x); } } while(0)
 #define ERROR(x...) printf("Error: " x); exit(-1)
 #define ASSERT(condition, x...) do { if (!(condition)) { printf("Assertion Error [" #condition "]: " x); exit(-1); } } while(0)
 

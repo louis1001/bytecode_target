@@ -40,9 +40,7 @@ u8 allocate_string(VM* vm, char* str) {
     if (allocated == NULL) {
         ERROR("Couldn't allocate string");
     } else {
-        #if DEBUG
-            printf("INFO: Allocated string %s\n", str);
-        #endif // DEBUG
+        LOG("Allocated string %s\n", str);
     }
 
     //      Copy the memory from code to the heap
@@ -59,11 +57,7 @@ u8 allocate_string(VM* vm, char* str) {
 void destroy_vm(VM* vm) {
     for (int i = 0; i < vm->current_allocated_string; i++) {
         char* ptr = vm->allocated_strings[i];
-        #if VERBOSE
-            printf("INFO: Freeing string %s\n", ptr);
-            // flush stdout
-            fflush(stdout);
-        #endif // VERBOSE
+        VERBOSE_LOG("Freeing string %s\n", ptr);
         
         if(ptr != NULL) {
             free(ptr);
@@ -79,42 +73,37 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case STR: {
-            #if VERBOSE
-            printf("[%zx] Allocating a string\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Saving a string\n", vm->pc);
+
             u8 str = save_string(vm);
             push_to_stack(&vm->stack, str);
             break;
         }
         case PNT: {
-            #if VERBOSE
-            printf("[%zx] Printing string\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Printing string\n", vm->pc);
+
             u8 index = pop_from_stack(&vm->stack);
             printf("%s", vm->strings[index]);
             break;
         }
         case ADD: {
-            #if VERBOSE
-            printf("[%zx] Adding two ints\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
+
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, a + b);
             break;
         }
         case JMP: {
-            #if VERBOSE
-            printf("[%zx] Jumping\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Jumping\n", vm->pc);
+
             u8 target = pop_from_stack(&vm->stack);
             vm->pc = (usize) target; //FIXME: Do 32bit targets
             break;
         }
         case JPT: {
-            #if VERBOSE
-            printf("[%zx] Jumping if true\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
+
             u8 target = pop_from_stack(&vm->stack);
 
             u8 condition = pop_from_stack(&vm->stack);
@@ -124,9 +113,8 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case JPF: {
-            #if VERBOSE
-            printf("[%zx] Jumping if true\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
+
             u8 target = pop_from_stack(&vm->stack);
 
             u8 condition = pop_from_stack(&vm->stack);
@@ -136,9 +124,8 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case EQU: {
-            #if VERBOSE
-            printf("[%zx] Checking if equal\n", vm->pc);
-            #endif // VERBOSE
+            VERBOSE_LOG("[%zx] Checking if equal\n", vm->pc);
+
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 
@@ -146,9 +133,8 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case LT: {
-            #if VERBOSE
-            printf("[%zx] Checking if less than\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Checking if less than\n", vm->pc);
+
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 
@@ -161,40 +147,35 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case EXT: {
-            #if VERBOSE
-            printf("[%zx] Exiting\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Exiting\n", vm->pc);
+
             vm->pc = vm->program->size;
             break;
         }
         case INC: {
-            #if VERBOSE
-            printf("[%zx] Incrementing the top stack value\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Incrementing the top stack value\n", vm->pc);
+
             u8 value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value + 1);
             break;
         }
         case DEC: {
-            #if VERBOSE
-            printf("[%zx] Decrementing the top stack value\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Decrementing the top stack value\n", vm->pc);
+
             u8 value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value - 1);
             break;
         }
         case PSH: {
-            #if VERBOSE
-            printf("[%zx] Pushing to the stack\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Pushing to the stack\n", vm->pc);
+
             u8 value = vm->program->code[vm->pc++];
             push_to_stack(&vm->stack, value);
             break;
         }
         case DUP: {
-            #if VERBOSE
-            printf("[%zx] Duplicating the top stack value\n", vm->pc);
-            #endif
+            VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
+
             u8 value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value);
             push_to_stack(&vm->stack, value);

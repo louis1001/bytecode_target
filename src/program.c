@@ -9,9 +9,7 @@ void print_program(Program* p) {
         ERROR("Printing a NULL pointer to program.");
     }
 
-    #if DEBUG
-    printf("INFO: Program has %zu bytes\n", p->size);
-    #endif // DEBUG
+    LOG("Program has %zu bytes\n", p->size);
 
     for (usize i = 0; i < p->size; i++) {
         printf("[0x%02zx] -> 0x%x\n", i, p->code[i]);

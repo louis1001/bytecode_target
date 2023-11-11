@@ -30,9 +30,9 @@ void grow_operand_array_to_fit(OperandArray* array, usize new_elements) {
     while (array->capacity < target_capacity) {
         array->capacity *= 2;
     }
-    #if DEBUG
-    printf("INFO: Growing the array to capacity %zu to fit %zu new elements\n", array->capacity, new_elements);
-    #endif // DEBUG
+
+    LOG("Growing the array to capacity %zu to fit %zu new elements\n", array->capacity, new_elements);
+
     array->data = realloc(array->data, array->capacity * sizeof(u8));
     if (array->data == NULL) {
         ERROR("Could not reallocate the memory for growing instruction array");
@@ -43,9 +43,7 @@ void insert_operand_array(OperandArray *a, u8 element) {
   // a->size is the number of used entries, because a->array[a->size++] updates a->size only *after* the array has been accessed.
   // Therefore a->size can go up to a->capacity 
   if (a->count == a->capacity) {
-    #if DEBUG
-    printf("INFO: Growing the array to %zu\n", a->capacity * 2);
-    #endif // DEBUG
+    LOG("INFO: Growing the array to %zu\n", a->capacity * 2);
 
     a->capacity *= 2;
     a->data = realloc(a->data, a->capacity * sizeof(u8));
@@ -83,9 +81,9 @@ void grow_inst_array_to_fit(InstructionArray* array, usize new_elements) {
     while (array->capacity < target_capacity) {
         array->capacity *= 2;
     }
-    #if DEBUG
-    printf("INFO: Growing the array to capacity %zu to fit %zu new elements\n", array->capacity, new_elements);
-    #endif // DEBUG
+
+    LOG("Growing the array to capacity %zu to fit %zu new elements\n", array->capacity, new_elements);
+
     array->data = realloc(array->data, array->capacity * sizeof(Instruction));
     if (array->data == NULL) {
         ERROR("Could not reallocate the memory for growing instruction array");
@@ -96,9 +94,7 @@ Instruction *insert_inst_array(InstructionArray *a, Instruction element) {
   // a->size is the number of used entries, because a->array[a->size++] updates a->size only *after* the array has been accessed.
   // Therefore a->size can go up to a->capacity 
   if (a->count == a->capacity) {
-    #if DEBUG
-    printf("INFO: Growing the array to %zu\n", a->capacity * 2);
-    #endif // DEBUG
+    LOG("Growing the array to %zu\n", a->capacity * 2);
 
     a->capacity *= 2;
     a->data = realloc(a->data, a->capacity * sizeof(Instruction));
@@ -139,9 +135,7 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
         size += 1 + inst->operands.count;
     }
 
-    #if DEBUG
-    printf("INFO: Program has %zu bytes\n", size);
-    #endif // DEBUG
+    LOG("Program has %zu bytes\n", size);
 
     // Then resolve the labels.
     // Each value in builder->labels is the index of the instruction that the label points to.
@@ -155,9 +149,8 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
             u8 label_addr = builder->labels[index];
             u8 target_addr = addresses[label_addr];
             inst->operands.data[0] = target_addr;
-            #if DEBUG
-            printf("INFO: Replaced label %u value from %u to 0x%x\n", index, label_addr, target_addr);
-            #endif // DEBUG
+
+            LOG("Replaced label %u value from %u to 0x%x\n", index, label_addr, target_addr);
         }
     }
 
