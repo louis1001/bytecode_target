@@ -14,11 +14,13 @@
     X(JMP, 0x0A) \
     X(STR, 0x0E) \
     X(JPT, 0x0B) \
+    X(JPF, 0x0C) \
     X(PNT, 0x0F) \
     X(PCH, 0x20) \
     X(INC, 0x11) \
     X(DEC, 0x12) \
     X(PSH, 0x13) \
+    X(DUP, 0x14) \
     X(LBL, 0xFE) \
     X(EXT, 0xFF)
 
@@ -32,5 +34,9 @@ typedef enum {
 // STR <u8 array of characters> -> Allocates a string on the heap and pushes the index into strings to the stack
 // LBL is a Placeholder. To be replaced by a label content
 // Besides STR, all opcodes operate on the heap
+
+char *opcode_to_str(OpCode op);
+
+void print_opcode(OpCode op);
 
 #endif // OPCODES_H

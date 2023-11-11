@@ -11,45 +11,25 @@ int main(void) {
     // Now with program builder
     ProgramBuilder pb = {0};
     init_program_builder(&pb);
-    
-    u8 label1 = create_label(&pb);
-    u8 label2 = create_label(&pb);
-    u8 label3 = create_label(&pb);
-    u8 label4 = create_label(&pb);
 
-    emit_instruction(&pb, PSH);
-    emit_instruction(&pb, LBL);
-    emit_u8(&pb, label1);
+    // Testing what happens if you link a label that points back in the code
     emit_nop(&pb);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    link_label(&pb, label1);
+    u8 loop_label = create_label(&pb);
+    emit_push(&pb, 0x00);
 
-    emit_instruction(&pb, PSH);
-    emit_instruction(&pb, LBL);
-    emit_u8(&pb, label2);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    link_label(&pb, label2);
+    link_label(&pb, loop_label); /* -> */ emit_push(&pb, 0x01);
+    emit_plain_instruction(&pb, ADD);
+    emit_plain_instruction(&pb, DUP);
+    emit_plain_instruction(&pb, DBG);
 
-    emit_instruction(&pb, PSH);
-    emit_instruction(&pb, LBL);
-    emit_u8(&pb, label3);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    link_label(&pb, label3);
+    emit_plain_instruction(&pb, DUP);
 
-    emit_instruction(&pb, PSH);
-    emit_instruction(&pb, LBL);
-    emit_u8(&pb, label4);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    emit_nop(&pb);
-    link_label(&pb, label4);
+    emit_push(&pb, 100);
+    emit_plain_instruction(&pb, EQU);
 
-    emit_instruction(&pb, EXT);
+    emit_jump_if_false(&pb, loop_label);
+
+    emit_plain_instruction(&pb, EXT);
 
     Program program2 = create_program();
     clone_to_program(&pb, &program2);
@@ -58,7 +38,7 @@ int main(void) {
 
     free_program_builder(&pb);
 
-    // execute(&program2);
+    execute(&program2);
 
     destroy_program(&program2);
 

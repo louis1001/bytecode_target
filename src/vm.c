@@ -123,8 +123,22 @@ void execute_byte(VM *vm, OpCode op) {
             }
             break;
         }
+        case JPF: {
+            #if VERBOSE
+            printf("[%zx] Jumping if true\n", vm->pc);
+            #endif
+            u8 target = pop_from_stack(&vm->stack);
+
+            u8 condition = pop_from_stack(&vm->stack);
+            if (!condition) {
+                vm->pc = (usize) target; //FIXME: Do 32bit targets
+            }
+            break;
+        }
         case EQU: {
+            #if VERBOSE
             printf("[%zx] Checking if equal\n", vm->pc);
+            #endif // VERBOSE
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 
@@ -177,8 +191,22 @@ void execute_byte(VM *vm, OpCode op) {
             push_to_stack(&vm->stack, value);
             break;
         }
+        case DUP: {
+            #if VERBOSE
+            printf("[%zx] Duplicating the top stack value\n", vm->pc);
+            #endif
+            u8 value = pop_from_stack(&vm->stack);
+            push_to_stack(&vm->stack, value);
+            push_to_stack(&vm->stack, value);
+            break;
+        }
         default: {
-            ERROR("Invalid opcode 0x%x", op);
+            char *opcode_name = opcode_to_str(op);
+            if (opcode_name != NULL) {
+                ERROR("Opcode %s not implemented\n", opcode_name);
+            } else {
+                ERROR("Invalid opcode 0x%x\n", op);
+            }
             break;
         }
     }

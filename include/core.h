@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define ERROR(x...) printf("Error: " x); exit(-1)
+#define ASSERT(condition, x...) do { if (!(condition)) { printf("Assertion Error [" #condition "]: " x); exit(-1); } } while(0)
 
 // Int types
 #define u8 u_int8_t
