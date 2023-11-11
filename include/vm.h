@@ -27,6 +27,7 @@ typedef struct {
 
 void push_to_stack(Stack*, BASE_T);
 BASE_T pop_from_stack(Stack*);
+void debug_stack(Stack*);
 
 u8 save_string(VM*);
 u8 allocate_string(VM*, char*);

@@ -3,19 +3,23 @@
 #include <string.h>
 
 void push_to_stack(Stack* st, BASE_T value) {
-    if (st->sp >= MAX_STACK_SIZE) {
-        ERROR("Max stack size exceeded.");
-    }
+    ASSERT(st->sp < MAX_STACK_SIZE, "Max stack size exceeded.\n");
 
     st->storage[st->sp++] = value;
 }
 
 BASE_T pop_from_stack(Stack* st) {
-    if (st->sp <= 0) {
-        ERROR("Not enough elements on the stack.");
-    }
+    ASSERT(st->sp > 0, "Not enough elements on the stack.\n");
 
     return st->storage[--st->sp];
+}
+
+void debug_stack(Stack *stack) {
+    LOG("STACK:\n");
+    for (usize i = 0; i < stack->sp; i++) {
+        LOG("[%03zu] %u\n", i, stack->storage[i]);
+    }
+    LOG("BOTTOM OF STACK\n");
 }
 
 u8 save_string(VM* vm) {
@@ -138,7 +142,7 @@ void execute_byte(VM *vm, OpCode op) {
             u8 a = pop_from_stack(&vm->stack);
             u8 b = pop_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, (u8) a < b);
+            push_to_stack(&vm->stack, (u8) b < a);
             break;
         }
         case DBG: {
@@ -179,6 +183,28 @@ void execute_byte(VM *vm, OpCode op) {
             u8 value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value);
             push_to_stack(&vm->stack, value);
+            break;
+        }
+        case ROT: {
+            VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
+            ASSERT(vm->stack.sp >= 3, "Stack has enough values");
+
+            u8 a = pop_from_stack(&vm->stack);
+            u8 b = pop_from_stack(&vm->stack);
+            u8 c = pop_from_stack(&vm->stack);
+
+            push_to_stack(&vm->stack, a);
+            push_to_stack(&vm->stack, c);
+            push_to_stack(&vm->stack, b);
+            break;
+        }
+        case BKP: {
+            VERBOSE_LOG("[%zx] Hit breakpoint\n", vm->pc);
+
+            LOG("The stack at this point:\n");
+            debug_stack(&vm->stack);
+
+            vm->pc = vm->program->size;
             break;
         }
         default: {

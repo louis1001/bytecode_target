@@ -21,7 +21,11 @@
     X(DEC, 0x12) \
     X(PSH, 0x13) \
     X(DUP, 0x14) \
-    X(LBL, 0xFE) \
+    X(SWP, 0x15) \
+    X(DRP, 0x16) \
+    X(ROT, 0x17) \
+    X(OVR, 0x18) \
+    X(BKP, 0xFE) \
     X(EXT, 0xFF)
 
 #define X(name, val) name = val,
@@ -31,9 +35,6 @@ typedef enum {
 #undef X
 
 // PNT -> Considers the top of the stack as an index to a string and prints it
-// STR <u8 array of characters> -> Allocates a string on the heap and pushes the index into strings to the stack
-// LBL is a Placeholder. To be replaced by a label content
-// Besides STR, all opcodes operate on the heap
 
 char *opcode_to_str(OpCode op);
 
