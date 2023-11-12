@@ -21,7 +21,7 @@ $ ./vm
 Using the `ProgramBuilder` API, this is how you would create a program that
 counts from 0x00 to 0xff:
 ```c
-    u8 loop_label = create_label(builder);
+    u64 loop_label = create_label(builder);
     emit_push(builder, 0x00);
 
     link_label(builder, loop_label);
@@ -62,7 +62,7 @@ loop_label:
     emit_push(builder, 1); // b
     emit_push(builder, 0); // a
 
-    u8 loop_label = create_label(builder);
+    u64 loop_label = create_label(builder);
     link_label(builder, loop_label);
     // Stack => top | a b | bottom
     emit_plain_instruction(builder, DUP);

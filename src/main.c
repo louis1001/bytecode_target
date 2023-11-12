@@ -12,7 +12,7 @@ void build_program(ProgramBuilder *builder) {
     emit_push(builder, 1); // b
     emit_push(builder, 0); // a
 
-    u8 loop_label = create_label(builder);
+    u64 loop_label = create_label(builder);
     link_label(builder, loop_label);
     // Stack => top | a b | bottom
     emit_plain_instruction(builder, DUP);
@@ -26,14 +26,10 @@ void build_program(ProgramBuilder *builder) {
     emit_plain_instruction(builder, DBG);
 
     emit_plain_instruction(builder, DUP); // c
-    emit_push(builder, 200);
+    emit_push(builder, 1000000);
     emit_plain_instruction(builder, LT); // c < 0xff
 
-    // emit_plain_instruction(builder, BKP);
-
     emit_jump_if_true(builder, loop_label);
-
-    emit_plain_instruction(builder, ADD); // stack is: 1
 
     emit_plain_instruction(builder, EXT);
 }

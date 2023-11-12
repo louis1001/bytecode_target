@@ -1,7 +1,7 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
-// A macro to define the list of opcodes (with a defined u8 value) and their names
+// A macro to define the list of opcodes (with a defined BASE_T value) and their names
 // https://stackoverflow.com/questions/147267/easy-way-to-use-variables-of-enum-types-as-string-in-c
 #define OPCODES \
     X(NOP, 0x00) \

@@ -17,10 +17,10 @@ typedef struct {
     usize pc;
     Program* program;
     BASE_T registers[32];
-    char* allocated_strings[sizeof(u8)];
-    char* strings[sizeof(u8)];
-    u8 current_allocated_string;
-    u8 current_string;
+    char* allocated_strings[sizeof(BASE_T)];
+    char* strings[sizeof(BASE_T)];
+    BASE_T current_allocated_string;
+    BASE_T current_string;
 
     Stack stack;
 } VM;
@@ -29,8 +29,8 @@ void push_to_stack(Stack*, BASE_T);
 BASE_T pop_from_stack(Stack*);
 void debug_stack(Stack*);
 
-u8 save_string(VM*);
-u8 allocate_string(VM*, char*);
+BASE_T save_string(VM*);
+BASE_T allocate_string(VM*, char*);
 void destroy_vm(VM*);
 void execute_byte(VM*, OpCode);
 void execute(Program*);

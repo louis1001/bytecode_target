@@ -12,7 +12,7 @@
 // Operand Array:
 void init_operand_array(OperandArray *a, usize initial_capacity) {
     usize actual_capacity = initial_capacity == 0 ? 1 : initial_capacity;
-    a->data = malloc(actual_capacity * sizeof(u8));
+    a->data = malloc(actual_capacity * sizeof(BASE_T));
     if (a->data == NULL) {
         ERROR("Could not allocate the memory for instruction array");
     }
@@ -33,20 +33,20 @@ void grow_operand_array_to_fit(OperandArray* array, usize new_elements) {
 
     LOG("Growing the array to capacity %zu to fit %zu new elements\n", array->capacity, new_elements);
 
-    array->data = realloc(array->data, array->capacity * sizeof(u8));
+    array->data = realloc(array->data, array->capacity * sizeof(BASE_T));
     if (array->data == NULL) {
         ERROR("Could not reallocate the memory for growing instruction array");
     }
 }
 
-void insert_operand_array(OperandArray *a, u8 element) {
+void insert_operand_array(OperandArray *a, BASE_T element) {
   // a->size is the number of used entries, because a->array[a->size++] updates a->size only *after* the array has been accessed.
   // Therefore a->size can go up to a->capacity 
   if (a->count == a->capacity) {
     LOG("INFO: Growing the array to %zu\n", a->capacity * 2);
 
     a->capacity *= 2;
-    a->data = realloc(a->data, a->capacity * sizeof(u8));
+    a->data = realloc(a->data, a->capacity * sizeof(BASE_T));
     if (a->data == NULL) {
         ERROR("Could not reallocate the memory for growing instruction array");
     }
@@ -135,8 +135,6 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
         size += 1 + inst->operands.count;
     }
 
-    LOG("Program has %zu bytes\n", size);
-
     // Then resolve the labels.
     // Each value in builder->labels is the index of the instruction that the label points to.
     // We need to replace the label with the address of the instruction.
@@ -145,18 +143,18 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
         if (inst->operand_is_label) {
             // labels should have only one operand
             ASSERT(inst->operands.count == 1, "[%zu]0x%x instruction has more than one operand, not %zu\n", i, inst->opcode, inst->operands.count);
-            u8 index = inst->operands.data[0];
-            u8 label_addr = builder->labels[index];
-            u8 target_addr = addresses[label_addr];
-            inst->operands.data[0] = target_addr;
+            BASE_T index = inst->operands.data[0];
+            usize label_addr = builder->labels[index];
+            usize target_addr = addresses[label_addr];
+            inst->operands.data[0] = (BASE_T) target_addr;
 
-            LOG("Replaced label %u value from %u to 0x%x\n", index, label_addr, target_addr);
+            LOG("Replaced label %llu value from %zu to 0x%zx\n", index, label_addr, target_addr);
         }
     }
 
     // Now we can allocate the memory for the program
     program->size = size;
-    program->code = malloc(size * sizeof(u8));
+    program->code = malloc(size * sizeof(BASE_T));
     if (program->code == NULL) {
         ERROR("Could not allocate the memory for program");
     }
@@ -165,7 +163,7 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
     for (usize i = 0; i < builder->instructions.count; i++) {
         Instruction *inst = &builder->instructions.data[i];
         program->code[addresses[i]] = inst->opcode;
-        memcpy(program->code + addresses[i] + 1, inst->operands.data, inst->operands.count * sizeof(u8));
+        memcpy(program->code + addresses[i] + 1, inst->operands.data, inst->operands.count * sizeof(BASE_T));
     }
 }
 
@@ -190,7 +188,7 @@ Instruction *emit_instruction(ProgramBuilder* pb, OpCode opcode, usize count, us
     va_list args;
     va_start(args, first);
     for (int i = 0; i < ((int) count)-1; i++) {
-        u8 operand = (u8)va_arg(args, int);
+        BASE_T operand = (BASE_T)va_arg(args, int);
         insert_operand_array(&instruction.operands, operand);
     }
     va_end(args);
@@ -199,7 +197,7 @@ Instruction *emit_instruction(ProgramBuilder* pb, OpCode opcode, usize count, us
     return insert_inst_array(&pb->instructions, instruction);
 }
 
-Instruction *emit_instruction_with_operands(ProgramBuilder* pb, OpCode opcode, u8 *operands, usize operands_count) {
+Instruction *emit_instruction_with_operands(ProgramBuilder* pb, OpCode opcode, BASE_T *operands, usize operands_count) {
     // Take the opcode and the operands, and create an instruction.
     // Then insert the instruction into the instruction array.
     Instruction instruction = {0};
@@ -207,7 +205,8 @@ Instruction *emit_instruction_with_operands(ProgramBuilder* pb, OpCode opcode, u
     init_operand_array(&instruction.operands, operands_count);
 
     // copy directly the operands, since they have to fit given the capacity
-    memcpy(instruction.operands.data, operands, operands_count * sizeof(u8));
+    memcpy(instruction.operands.data, operands, operands_count * sizeof(BASE_T));
+    instruction.operands.count = operands_count;
 
     // Insert the instruction into the instruction array
     return insert_inst_array(&pb->instructions, instruction);
@@ -217,11 +216,11 @@ void emit_nop(ProgramBuilder *builder) {
     emit_plain_instruction(builder, NOP);
 }
 
-void emit_push(ProgramBuilder *builder, u8 value) {
+void emit_push(ProgramBuilder *builder, BASE_T value) {
     emit_instruction(builder, PSH, 1, value);
 }
 
-void emit_push_label(ProgramBuilder *builder, u8 label) {
+void emit_push_label(ProgramBuilder *builder, BASE_T label) {
     Instruction *inst = emit_instruction(builder, PSH, 0, label);
     inst->operand_is_label = true;
 }
@@ -234,27 +233,27 @@ void emit_str(ProgramBuilder *builder, char *str) {
     emit_instruction_with_operands(builder, STR, str_u8, len);
 }
 
-void emit_jump(ProgramBuilder* builder, u8 target) {
+void emit_jump(ProgramBuilder* builder, LABEL_T target) {
     emit_push_label(builder, target); // target is the label index
 
     emit_plain_instruction(builder, JMP);
 }
 
-void emit_jump_if_true(ProgramBuilder* builder, u8 target) {
+void emit_jump_if_true(ProgramBuilder* builder, LABEL_T target) {
     emit_push_label(builder, target);
     emit_plain_instruction(builder, JPT);
 }
 
-void emit_jump_if_false(ProgramBuilder* builder, u8 target) {
+void emit_jump_if_false(ProgramBuilder* builder, LABEL_T target) {
     emit_push_label(builder, target);
     emit_plain_instruction(builder, JPF);
 }
 
 // Labels
-u8 create_label(ProgramBuilder* builder) {
+LABEL_T create_label(ProgramBuilder* builder) {
     return builder->current_label++;
 }
 
-void link_label(ProgramBuilder* builder, u8 addr) {
+void link_label(ProgramBuilder* builder, LABEL_T addr) {
     builder->labels[addr] = builder->instructions.count;
 }

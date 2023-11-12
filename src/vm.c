@@ -15,25 +15,14 @@ BASE_T pop_from_stack(Stack* st) {
 }
 
 void debug_stack(Stack *stack) {
-    LOG("STACK:\n");
+    printf("STACK:\n");
     for (usize i = 0; i < stack->sp; i++) {
-        LOG("[%03zu] %u\n", i, stack->storage[i]);
+        printf("[%03zu] %llu\n", i, stack->storage[i]);
     }
-    LOG("BOTTOM OF STACK\n");
+    printf("BOTTOM OF STACK\n");
 }
 
-u8 save_string(VM* vm) {
-    //      C automatically will handle the zero-terminated string
-    //          within the code array.
-    char* str = (char*) &(vm->program->code[vm->pc]);
-
-    u8 index = vm->current_string++;
-    vm->strings[index] = str;
-
-    return index;
-}
-
-u8 allocate_string(VM* vm, char* str) {
+BASE_T allocate_string(VM* vm, char* str) {
     //      Find the length of the string, plus
     //          the '\0' character.
     unsigned long len = strlen(str);
@@ -51,7 +40,7 @@ u8 allocate_string(VM* vm, char* str) {
     strlcpy(allocated, str, len+1);
 
     //      Store the string pointer so it can be freed later
-    u8 index = vm->current_string++;
+    BASE_T index = vm->current_string++;
     vm->strings[index] = allocated;
     vm->allocated_strings[vm->current_allocated_string++] = allocated;
 
@@ -59,7 +48,7 @@ u8 allocate_string(VM* vm, char* str) {
 }
 
 void destroy_vm(VM* vm) {
-    for (int i = 0; i < vm->current_allocated_string; i++) {
+    for (BASE_T i = 0; i < vm->current_allocated_string; i++) {
         char* ptr = vm->allocated_strings[i];
         VERBOSE_LOG("Freeing string %s\n", ptr);
         
@@ -93,24 +82,24 @@ void execute_byte(VM *vm, OpCode op) {
         case ADD: {
             VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
 
-            u8 a = pop_from_stack(&vm->stack);
-            u8 b = pop_from_stack(&vm->stack);
+            BASE_T a = pop_from_stack(&vm->stack);
+            BASE_T b = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, a + b);
             break;
         }
         case JMP: {
             VERBOSE_LOG("[%zx] Jumping\n", vm->pc);
 
-            u8 target = pop_from_stack(&vm->stack);
+            BASE_T target = pop_from_stack(&vm->stack);
             vm->pc = (usize) target; //FIXME: Do 32bit targets
             break;
         }
         case JPT: {
             VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
 
-            u8 target = pop_from_stack(&vm->stack);
+            BASE_T target = pop_from_stack(&vm->stack);
 
-            u8 condition = pop_from_stack(&vm->stack);
+            BASE_T condition = pop_from_stack(&vm->stack);
             if (condition) {
                 vm->pc = (usize) target; //FIXME: Do 32bit targets
             }
@@ -119,9 +108,9 @@ void execute_byte(VM *vm, OpCode op) {
         case JPF: {
             VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
 
-            u8 target = pop_from_stack(&vm->stack);
+            BASE_T target = pop_from_stack(&vm->stack);
 
-            u8 condition = pop_from_stack(&vm->stack);
+            BASE_T condition = pop_from_stack(&vm->stack);
             if (!condition) {
                 vm->pc = (usize) target; //FIXME: Do 32bit targets
             }
@@ -130,24 +119,24 @@ void execute_byte(VM *vm, OpCode op) {
         case EQU: {
             VERBOSE_LOG("[%zx] Checking if equal\n", vm->pc);
 
-            u8 a = pop_from_stack(&vm->stack);
-            u8 b = pop_from_stack(&vm->stack);
+            BASE_T a = pop_from_stack(&vm->stack);
+            BASE_T b = pop_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, (u8) a == b);
+            push_to_stack(&vm->stack, (BASE_T) a == b);
             break;
         }
         case LT: {
             VERBOSE_LOG("[%zx] Checking if less than\n", vm->pc);
 
-            u8 a = pop_from_stack(&vm->stack);
-            u8 b = pop_from_stack(&vm->stack);
+            BASE_T a = pop_from_stack(&vm->stack);
+            BASE_T b = pop_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, (u8) b < a);
+            push_to_stack(&vm->stack, (BASE_T) b < a);
             break;
         }
         case DBG: {
-            u8 num = pop_from_stack(&vm->stack);
-            printf("Debug: %u\n", num);
+            BASE_T num = pop_from_stack(&vm->stack);
+            printf("Debug: %llu\n", num);
             break;
         }
         case EXT: {
@@ -159,28 +148,28 @@ void execute_byte(VM *vm, OpCode op) {
         case INC: {
             VERBOSE_LOG("[%zx] Incrementing the top stack value\n", vm->pc);
 
-            u8 value = pop_from_stack(&vm->stack);
+            BASE_T value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value + 1);
             break;
         }
         case DEC: {
             VERBOSE_LOG("[%zx] Decrementing the top stack value\n", vm->pc);
 
-            u8 value = pop_from_stack(&vm->stack);
+            BASE_T value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value - 1);
             break;
         }
         case PSH: {
             VERBOSE_LOG("[%zx] Pushing to the stack\n", vm->pc);
 
-            u8 value = vm->program->code[vm->pc++];
+            BASE_T value = vm->program->code[vm->pc++];
             push_to_stack(&vm->stack, value);
             break;
         }
         case DUP: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
 
-            u8 value = pop_from_stack(&vm->stack);
+            BASE_T value = pop_from_stack(&vm->stack);
             push_to_stack(&vm->stack, value);
             push_to_stack(&vm->stack, value);
             break;
@@ -189,9 +178,9 @@ void execute_byte(VM *vm, OpCode op) {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
             ASSERT(vm->stack.sp >= 3, "Stack has enough values");
 
-            u8 a = pop_from_stack(&vm->stack);
-            u8 b = pop_from_stack(&vm->stack);
-            u8 c = pop_from_stack(&vm->stack);
+            BASE_T a = pop_from_stack(&vm->stack);
+            BASE_T b = pop_from_stack(&vm->stack);
+            BASE_T c = pop_from_stack(&vm->stack);
 
             push_to_stack(&vm->stack, a);
             push_to_stack(&vm->stack, c);
@@ -201,7 +190,7 @@ void execute_byte(VM *vm, OpCode op) {
         case BKP: {
             VERBOSE_LOG("[%zx] Hit breakpoint\n", vm->pc);
 
-            LOG("The stack at this point:\n");
+            printf("The stack at this point:\n");
             debug_stack(&vm->stack);
 
             vm->pc = vm->program->size;

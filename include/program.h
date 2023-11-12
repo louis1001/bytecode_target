@@ -5,7 +5,7 @@
 // Code stream
 typedef struct {
     usize size;
-    u8* code;
+    BASE_T* code;
 } Program;
 
 void print_program(Program*);

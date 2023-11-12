@@ -20,6 +20,7 @@
 #define LOG(x...) do { if (DEBUG) { printf("INFO: " x); } } while(0)
 #define VERBOSE_LOG(x...) do { if (VERBOSE) { printf("INFO: " x); } } while(0)
 #define ERROR(x...) printf(AT"Error: " x); exit(-1)
+#define TODO(x...) printf(AT"Not implemented: " x); exit(-1)
 #define ASSERT(condition, x...) do { if (!(condition)) { printf(AT "Assertion Error [" #condition "]: " x); exit(-1); } } while(0)
 
 // Int types
@@ -29,6 +30,7 @@
 #define usize size_t
 
 // What type of data is stored in the stack and registers
-#define BASE_T u8
+#define BASE_T u64
+// TODO: Figure out a macro for string format of BASE_T conditionally (u64 -> %llu, u32 -> %u, etc.)
 
 #endif // CORE_H
