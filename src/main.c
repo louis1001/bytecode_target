@@ -31,6 +31,10 @@ void build_program(ProgramBuilder *builder) {
 
     emit_jump_if_true(builder, loop_label);
 
+    emit_str(builder, "Done!\n");
+
+    emit_plain_instruction(builder, PNT);
+
     emit_plain_instruction(builder, EXT);
 }
 

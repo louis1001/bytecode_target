@@ -68,15 +68,26 @@ void execute_byte(VM *vm, OpCode op) {
         case STR: {
             VERBOSE_LOG("[%zx] Saving a string\n", vm->pc);
 
-            u8 str = save_string(vm);
-            push_to_stack(&vm->stack, str);
+            BASE_T str_length = vm->program->code[vm->pc++];
+            char *str = (char*) &vm->program->code[vm->pc];
+
+            // Increment the program counter by the length of the string rounded up to the nearest sizeof(BASE_T)
+            vm->pc += (str_length + sizeof(BASE_T) - 1) / sizeof(BASE_T);
+
+            push_to_stack(&vm->stack, (BASE_T) str);
+            push_to_stack(&vm->stack, str_length);
             break;
         }
         case PNT: {
             VERBOSE_LOG("[%zx] Printing string\n", vm->pc);
 
-            u8 index = pop_from_stack(&vm->stack);
-            printf("%s", vm->strings[index]);
+            BASE_T str_length = pop_from_stack(&vm->stack);
+            const char *str = (const char*)pop_from_stack(&vm->stack);
+            
+            // Since the string is not null terminated, we need to print it manually
+            for (usize i = 0; i < str_length; i++) {
+                putc(str[i], stdout);
+            }
             break;
         }
         case ADD: {

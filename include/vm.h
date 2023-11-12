@@ -29,7 +29,7 @@ void push_to_stack(Stack*, BASE_T);
 BASE_T pop_from_stack(Stack*);
 void debug_stack(Stack*);
 
-BASE_T save_string(VM*);
+const char *save_string(VM*);
 BASE_T allocate_string(VM*, char*);
 void destroy_vm(VM*);
 void execute_byte(VM*, OpCode);

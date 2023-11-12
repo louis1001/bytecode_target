@@ -9,6 +9,14 @@
 //     return opcode_names[opcode];
 // }
 
+BASE_T min(BASE_T a, BASE_T b) {
+    return a < b ? a : b;
+}
+
+BASE_T max(BASE_T a, BASE_T b) {
+    return a < b ? a : b;
+}
+
 // Operand Array:
 void init_operand_array(OperandArray *a, usize initial_capacity) {
     usize actual_capacity = initial_capacity == 0 ? 1 : initial_capacity;
@@ -226,11 +234,29 @@ void emit_push_label(ProgramBuilder *builder, BASE_T label) {
 }
 
 void emit_str(ProgramBuilder *builder, char *str) {
-    usize len = strlen(str) + 1; // We want to include the null terminator
-    // Make the string a u8 pointer
-    u8 *str_u8 = (u8*)str;
+    // Pad the end of the string so that it doesn't include garbage memory when copying to the operands array
+    usize base_size = sizeof(BASE_T);
+    usize len = strlen(str);
+    // FIXME: Don't use base_size to store the length when we go to variable length bytecode
+    //                 the first base_size is for the length of the string stored in the operands
+    usize padded_len = base_size + len + (base_size - (len % base_size));
+    char *padded_str = malloc(padded_len);
+    if (padded_str == NULL) {
+        ERROR("Could not allocate the memory for string");
+    }
+    memset(padded_str, 0, padded_len);
+    memcpy(padded_str + base_size, str, len);
 
-    emit_instruction_with_operands(builder, STR, str_u8, len);
+    usize operans_count = (padded_len / base_size) + 1;
+
+    // Now, make the string pointer a pointer of BASE_T with length padded_len / base_size
+    BASE_T *str_ptr = (BASE_T *) padded_str;
+
+    *str_ptr = len;
+
+    emit_instruction_with_operands(builder, STR, str_ptr, operans_count);
+
+    free(padded_str);
 }
 
 void emit_jump(ProgramBuilder* builder, LABEL_T target) {
