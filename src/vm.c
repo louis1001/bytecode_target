@@ -2,60 +2,57 @@
 #include "opcodes.h"
 #include <string.h>
 
-void push_to_stack(Stack* st, BASE_T value) {
+void push_to_stack(Stack* st, u8 value) {
     ASSERT(st->sp < MAX_STACK_SIZE, "Max stack size exceeded.\n");
 
     st->storage[st->sp++] = value;
 }
 
-BASE_T pop_from_stack(Stack* st) {
+void push_u64_to_stack(Stack* st, u64 value) {
+    ASSERT(st->sp + sizeof(u64) < MAX_STACK_SIZE, "Max stack size exceeded.\n");
+
+    memcpy(&st->storage[st->sp], &value, sizeof(u64));
+    st->sp += sizeof(u64);
+}
+
+u8 pop_from_stack(Stack* st) {
     ASSERT(st->sp > 0, "Not enough elements on the stack.\n");
 
     return st->storage[--st->sp];
 }
 
+u64 pop_u64_from_stack(Stack* st) {
+    ASSERT(st->sp >= sizeof(u64), "Not enough elements on the stack.\n");
+
+    u64 value;
+    memcpy(&value, &st->storage[st->sp - sizeof(u64)], sizeof(u64));
+    st->sp -= sizeof(u64);
+    return value;
+}
+
 void debug_stack(Stack *stack) {
     printf("STACK:\n");
     for (usize i = 0; i < stack->sp; i++) {
-        printf("[%03zu] %llu\n", i, stack->storage[i]);
+        printf("[%03zu] %hhu\n", i, stack->storage[i]);
     }
     printf("BOTTOM OF STACK\n");
 }
 
-BASE_T allocate_string(VM* vm, char* str) {
-    //      Find the length of the string, plus
-    //          the '\0' character.
-    unsigned long len = strlen(str);
-    vm->pc += len+1;
+u64 get_next_u64_from_program(VM *vm) {
+    u64 value;
+    memcpy(&value, &vm->program->code[vm->pc], sizeof(u64));
+    vm->pc += sizeof(u64);
+    return value;
+}
 
-    //      Allocate the string on the heap
-    char* allocated = malloc(len);
-    if (allocated == NULL) {
-        ERROR("Couldn't allocate string");
-    } else {
-        LOG("Allocated string %s\n", str);
-    }
-
-    //      Copy the memory from code to the heap
-    strlcpy(allocated, str, len+1);
-
-    //      Store the string pointer so it can be freed later
-    BASE_T index = vm->current_string++;
-    vm->strings[index] = allocated;
-    vm->allocated_strings[vm->current_allocated_string++] = allocated;
-
-    return index;
+u64 get_next_u8_from_program(VM *vm) {
+    u8 value = vm->program->code[vm->pc++];
+    return value;
 }
 
 void destroy_vm(VM* vm) {
-    for (BASE_T i = 0; i < vm->current_allocated_string; i++) {
-        char* ptr = vm->allocated_strings[i];
-        VERBOSE_LOG("Freeing string %s\n", ptr);
-        
-        if(ptr != NULL) {
-            free(ptr);
-        }
-    }
+    (void) vm;
+    // TODO: Free whatever needs to be freed
 }
 
 // Execution
@@ -68,21 +65,21 @@ void execute_byte(VM *vm, OpCode op) {
         case STR: {
             VERBOSE_LOG("[%zx] Saving a string\n", vm->pc);
 
-            BASE_T str_length = vm->program->code[vm->pc++];
+            u64 str_length = get_next_u64_from_program(vm);
             char *str = (char*) &vm->program->code[vm->pc];
 
-            // Increment the program counter by the length of the string rounded up to the nearest sizeof(BASE_T)
-            vm->pc += (str_length + sizeof(BASE_T) - 1) / sizeof(BASE_T);
+            // Increment the program counter by the length of the string
+            vm->pc += str_length;
 
-            push_to_stack(&vm->stack, (BASE_T) str);
-            push_to_stack(&vm->stack, str_length);
+            push_u64_to_stack(&vm->stack, (u64) str);
+            push_u64_to_stack(&vm->stack, str_length);
             break;
         }
         case PNT: {
             VERBOSE_LOG("[%zx] Printing string\n", vm->pc);
 
-            BASE_T str_length = pop_from_stack(&vm->stack);
-            const char *str = (const char*)pop_from_stack(&vm->stack);
+            u64 str_length = pop_u64_from_stack(&vm->stack);
+            const char *str = (const char*)pop_u64_from_stack(&vm->stack);
             
             // Since the string is not null terminated, we need to print it manually
             for (usize i = 0; i < str_length; i++) {
@@ -93,24 +90,24 @@ void execute_byte(VM *vm, OpCode op) {
         case ADD: {
             VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
 
-            BASE_T a = pop_from_stack(&vm->stack);
-            BASE_T b = pop_from_stack(&vm->stack);
-            push_to_stack(&vm->stack, a + b);
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+            push_u64_to_stack(&vm->stack, a + b);
             break;
         }
         case JMP: {
             VERBOSE_LOG("[%zx] Jumping\n", vm->pc);
 
-            BASE_T target = pop_from_stack(&vm->stack);
-            vm->pc = (usize) target; //FIXME: Do 32bit targets
+            u64 target = pop_u64_from_stack(&vm->stack);
+            vm->pc = (usize) target;
             break;
         }
         case JPT: {
             VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
 
-            BASE_T target = pop_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(&vm->stack);
 
-            BASE_T condition = pop_from_stack(&vm->stack);
+            u8 condition = pop_from_stack(&vm->stack);
             if (condition) {
                 vm->pc = (usize) target; //FIXME: Do 32bit targets
             }
@@ -119,34 +116,36 @@ void execute_byte(VM *vm, OpCode op) {
         case JPF: {
             VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
 
-            BASE_T target = pop_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(&vm->stack);
 
-            BASE_T condition = pop_from_stack(&vm->stack);
+            u8 condition = pop_from_stack(&vm->stack);
             if (!condition) {
-                vm->pc = (usize) target; //FIXME: Do 32bit targets
+                vm->pc = (usize) target;
             }
             break;
         }
         case EQU: {
             VERBOSE_LOG("[%zx] Checking if equal\n", vm->pc);
 
-            BASE_T a = pop_from_stack(&vm->stack);
-            BASE_T b = pop_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, (BASE_T) a == b);
+            push_to_stack(&vm->stack, (u8) a == b);
             break;
         }
         case LT: {
             VERBOSE_LOG("[%zx] Checking if less than\n", vm->pc);
 
-            BASE_T a = pop_from_stack(&vm->stack);
-            BASE_T b = pop_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, (BASE_T) b < a);
+            bool result = b < a;
+
+            push_to_stack(&vm->stack, result);
             break;
         }
         case DBG: {
-            BASE_T num = pop_from_stack(&vm->stack);
+            u64 num = pop_u64_from_stack(&vm->stack);
             printf("Debug: %llu\n", num);
             break;
         }
@@ -159,43 +158,44 @@ void execute_byte(VM *vm, OpCode op) {
         case INC: {
             VERBOSE_LOG("[%zx] Incrementing the top stack value\n", vm->pc);
 
-            BASE_T value = pop_from_stack(&vm->stack);
-            push_to_stack(&vm->stack, value + 1);
+            u64 value = pop_u64_from_stack(&vm->stack);
+            push_u64_to_stack(&vm->stack, value + 1);
             break;
         }
         case DEC: {
             VERBOSE_LOG("[%zx] Decrementing the top stack value\n", vm->pc);
 
-            BASE_T value = pop_from_stack(&vm->stack);
-            push_to_stack(&vm->stack, value - 1);
+            u64 value = pop_u64_from_stack(&vm->stack);
+            push_u64_to_stack(&vm->stack, value - 1);
             break;
         }
         case PSH: {
             VERBOSE_LOG("[%zx] Pushing to the stack\n", vm->pc);
 
-            BASE_T value = vm->program->code[vm->pc++];
-            push_to_stack(&vm->stack, value);
+            u64 value = get_next_u64_from_program(vm);
+
+            push_u64_to_stack(&vm->stack, value);
             break;
         }
         case DUP: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
 
-            BASE_T value = pop_from_stack(&vm->stack);
-            push_to_stack(&vm->stack, value);
-            push_to_stack(&vm->stack, value);
+            u64 value = pop_u64_from_stack(&vm->stack);
+            push_u64_to_stack(&vm->stack, value);
+            push_u64_to_stack(&vm->stack, value);
             break;
         }
         case ROT: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
             ASSERT(vm->stack.sp >= 3, "Stack has enough values");
 
-            BASE_T a = pop_from_stack(&vm->stack);
-            BASE_T b = pop_from_stack(&vm->stack);
-            BASE_T c = pop_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 c = pop_u64_from_stack(&vm->stack);
 
-            push_to_stack(&vm->stack, a);
-            push_to_stack(&vm->stack, c);
-            push_to_stack(&vm->stack, b);
+            push_u64_to_stack(&vm->stack, a);
+            push_u64_to_stack(&vm->stack, c);
+            push_u64_to_stack(&vm->stack, b);
             break;
         }
         case BKP: {
@@ -224,9 +224,7 @@ void execute(Program *program) {
     vm.program = program;
 
     while (vm.pc < program->size) {
-        if (vm.pc < 0) { ERROR("Invalid program counter (%zu) into bytecode array.\n", vm.pc); }
-
-        OpCode op = program->code[vm.pc++];
+        OpCode op = get_next_u8_from_program(&vm);
 
         execute_byte(&vm, op);
     }

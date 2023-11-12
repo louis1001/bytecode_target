@@ -4,15 +4,35 @@
 #include "opcodes.h"
 #include "program.h"
 
+// A union containing operands, which can be u8, u32 or u64.
+typedef union {
+    u8 u8;
+    u32 u32;
+    u64 u64;
+} OperandData;
+
+// An enum containing the types of operands.
+typedef enum {
+    OPERAND_U8 = sizeof(u8),
+    OPERAND_U32 = sizeof(u32),
+    OPERAND_U64 = sizeof(u64),
+} OperandType; // aka the size of the operand
+
+// A struct containing an operand and its type.
 typedef struct {
-    BASE_T *data;
+    OperandType type;
+    OperandData as;
+} Operand;
+
+typedef struct {
+    Operand *data;
     usize count;
     usize capacity;
 } OperandArray;
 
 void init_operand_array(OperandArray*, usize initial_capacity);
 void grow_operand_array_to_fit(OperandArray*, usize new_elements);
-void insert_operand_array(OperandArray*, BASE_T element);
+void insert_operand_array(OperandArray*, Operand operand);
 void free_operand_array(OperandArray*);
 
 typedef struct {
@@ -44,14 +64,16 @@ typedef struct {
 void init_program_builder(ProgramBuilder *builder);
 void free_program_builder(ProgramBuilder *builder);
 
+void debug_print_program_builder(ProgramBuilder *builder);
+
 //    To Program:
 void clone_to_program(ProgramBuilder*, Program*);
 
 // Instruction creation
 // emit_instructions needs to be called with a variable number of arguments
 Instruction *emit_plain_instruction(ProgramBuilder*, OpCode);
-Instruction *emit_instruction(ProgramBuilder*, OpCode, usize count, usize first, ...);
-Instruction *emit_instruction_with_operands(ProgramBuilder*, OpCode, BASE_T *operands, usize operands_count);
+Instruction *emit_instruction(ProgramBuilder*, OpCode, usize count, Operand first, ...);
+Instruction *emit_instruction_with_operands(ProgramBuilder*, OpCode, Operand *, usize operands_count);
 void emit_nop(ProgramBuilder*);
 void emit_push(ProgramBuilder*, BASE_T value);
 void emit_push_label(ProgramBuilder*, BASE_T label);

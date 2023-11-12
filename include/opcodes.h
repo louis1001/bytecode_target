@@ -35,6 +35,7 @@ typedef enum {
 #undef X
 
 // PNT -> Considers the top of the stack as an index to a string and prints it
+// By default, all stack operations will work on 64-bit values
 
 char *opcode_to_str(OpCode op);
 

@@ -7,6 +7,12 @@
 #include "vm.h"
 #include "program_builder.h"
 
+void dump_program_to_file(Program *program, char *file_path) {
+    FILE *file = fopen(file_path, "wb");
+    fwrite(program->code, sizeof(u8), program->size, file);
+    fclose(file);
+}
+
 void build_program(ProgramBuilder *builder) {
     // A fibonacci program:
     emit_push(builder, 1); // b
@@ -26,7 +32,7 @@ void build_program(ProgramBuilder *builder) {
     emit_plain_instruction(builder, DBG);
 
     emit_plain_instruction(builder, DUP); // c
-    emit_push(builder, 1000000);
+    emit_push(builder, 0xffffffffff);
     emit_plain_instruction(builder, LT); // c < 0xff
 
     emit_jump_if_true(builder, loop_label);
@@ -39,24 +45,22 @@ void build_program(ProgramBuilder *builder) {
 }
 
 int main(void) {
-    // Now with program builder
     ProgramBuilder pb = {0};
     init_program_builder(&pb);
 
     build_program(&pb);
 
-    Program program2 = create_program();
-    clone_to_program(&pb, &program2);
+    Program program = create_program();
+    clone_to_program(&pb, &program);
 
-    #if DEBUG
-    print_program(&program2);
-    #endif // DEBUG
+    debug_print_program_builder(&pb);
 
     free_program_builder(&pb);
+    print_program(&program);
 
-    execute(&program2);
+    execute(&program);
 
-    destroy_program(&program2);
+    destroy_program(&program);
 
     return 0;
 }

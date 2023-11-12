@@ -6,9 +6,9 @@
 
 // Stack
 #define MB *1024
-#define MAX_STACK_SIZE (2 MB)/sizeof(BASE_T)
+#define MAX_STACK_SIZE (2 MB)
 typedef struct {
-    BASE_T storage[MAX_STACK_SIZE];
+    u8 storage[MAX_STACK_SIZE];
     usize sp;
 } Stack;
 
@@ -17,20 +17,24 @@ typedef struct {
     usize pc;
     Program* program;
     BASE_T registers[32];
-    char* allocated_strings[sizeof(BASE_T)];
     char* strings[sizeof(BASE_T)];
-    BASE_T current_allocated_string;
     BASE_T current_string;
 
     Stack stack;
 } VM;
 
-void push_to_stack(Stack*, BASE_T);
-BASE_T pop_from_stack(Stack*);
+void push_to_stack(Stack*, u8);
+void push_u64_to_stack(Stack*, u64);
+
+u8 pop_from_stack(Stack*);
+u64 pop_u64_from_stack(Stack*);
+
+u64 get_next_u64_from_program(VM*);
+u64 get_next_u8_from_program(VM*);
+
 void debug_stack(Stack*);
 
 const char *save_string(VM*);
-BASE_T allocate_string(VM*, char*);
 void destroy_vm(VM*);
 void execute_byte(VM*, OpCode);
 void execute(Program*);

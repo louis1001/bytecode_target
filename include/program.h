@@ -5,11 +5,11 @@
 // Code stream
 typedef struct {
     usize size;
-    BASE_T* code;
+    u8* code;
 } Program;
 
 void print_program(Program*);
-Program create_program();
+Program create_program(void);
 void destroy_program(Program*);
 
 #endif // PROGRAM_H
