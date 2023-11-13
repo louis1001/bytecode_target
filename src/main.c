@@ -98,12 +98,18 @@ int main(void) {
     Program program = create_program();
     clone_to_program(&pb, &program);
 
+    // #if DEBUG
     debug_print_program_builder(&pb);
+    // #endif
 
     free_program_builder(&pb);
+
+    #if DEBUG
     print_program(&program);
+    #endif
 
     execute(&program);
+    // debug_execute(&program);
 
     destroy_program(&program);
 

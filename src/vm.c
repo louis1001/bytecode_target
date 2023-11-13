@@ -225,8 +225,7 @@ void execute_byte(VM *vm, OpCode op) {
 
             printf("The stack at this point:\n");
             debug_stack(&vm->stack);
-
-            vm->pc = vm->program->size;
+            // vm->pc = vm->program->size;
             break;
         }
         default: {
@@ -249,6 +248,38 @@ void execute(Program *program) {
         OpCode op = get_next_u8_from_program(&vm);
 
         execute_byte(&vm, op);
+    }
+
+    destroy_vm(&vm);
+}
+
+void debug_execute(Program *program) {
+    VM vm = {0};
+    vm.program = program;
+
+    while (vm.pc < program->size) {
+        usize inst_position = vm.pc;
+        OpCode op = get_next_u8_from_program(&vm);
+
+        execute_byte(&vm, op);
+
+        if (op == BKP) {
+            printf("Stopping at 0x%03zx\n", inst_position);
+            printf("Press enter to continue or q to exit:");
+            int input = getchar();
+
+            while (input != '\n') {
+                if (input != EOF) {
+                    break;
+                }
+
+                input = getchar();
+            }
+
+            if (input == 'q') {
+                break;
+            }
+        }
     }
 
     destroy_vm(&vm);

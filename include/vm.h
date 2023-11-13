@@ -38,5 +38,6 @@ const char *save_string(VM*);
 void destroy_vm(VM*);
 void execute_byte(VM*, OpCode);
 void execute(Program*);
+void debug_execute(Program*);
 
 #endif // VM_H
