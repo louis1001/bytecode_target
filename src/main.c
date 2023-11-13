@@ -14,32 +14,77 @@ void dump_program_to_file(Program *program, char *file_path) {
 }
 
 void build_program(ProgramBuilder *builder) {
-    // A fibonacci program:
-    emit_push(builder, 1); // b
-    emit_push(builder, 0); // a
+    // FizzBuzz
+    emit_push(builder, 1);
 
-    u64 loop_label = create_label(builder);
+    LABEL_T loop_label = create_label(builder);
+        
+    LABEL_T newline_label = create_label(builder);
+    LABEL_T check_buzz_label = create_label(builder);
+    LABEL_T print_fizz_label = create_label(builder);
+    LABEL_T print_buzz_label = create_label(builder);
+    LABEL_T else_label = create_label(builder);
+
     link_label(builder, loop_label);
-    // Stack => top | a b | bottom
-    emit_plain_instruction(builder, DUP);
-    // Stack => | a a b |
-    emit_plain_instruction(builder, ROT);
-    // Stack => | b a a |
-    emit_plain_instruction(builder, ADD);
-    // Stack => | c b |
 
+    emit_plain_instruction(builder, DUP);
+    emit_push(builder, 3);
+    emit_plain_instruction(builder, MOD);
+    emit_push(builder, 0);
+    emit_plain_instruction(builder, EQU);
+
+    emit_jump_if_true(builder, print_fizz_label);
+    emit_push(builder, 0); // did_fizz = false
+    emit_plain_instruction(builder, SWP);
+    emit_jump(builder, check_buzz_label);
+
+    link_label(builder, print_fizz_label);
+    emit_str(builder, "Fizz");
+    emit_plain_instruction(builder, PNT);
+    emit_push(builder, 1); // did_fizz = true
+    emit_plain_instruction(builder, SWP);
+
+    link_label(builder, check_buzz_label);
+    emit_plain_instruction(builder, DUP);
+    emit_push(builder, 5);
+    emit_plain_instruction(builder, MOD);
+    emit_push(builder, 0);
+    emit_plain_instruction(builder, EQU);
+
+    emit_jump_if_true(builder, print_buzz_label);
+    
+    emit_plain_instruction(builder, SWP);
+
+    // Check if it did fizz
+    emit_push(builder, 1);
+    emit_plain_instruction(builder, EQU);
+    emit_jump_if_true(builder, newline_label); // If it did fizz, don't print the number
+    emit_jump(builder, else_label);
+
+    link_label(builder, print_buzz_label);
+    // Fizz check cleanup
+    emit_plain_instruction(builder, SWP);
+    emit_plain_instruction(builder, DRP);
+
+    emit_str(builder, "Buzz");
+    emit_plain_instruction(builder, PNT);
+    emit_jump(builder, newline_label);
+
+    link_label(builder, else_label);
     emit_plain_instruction(builder, DUP);
     emit_plain_instruction(builder, DBG);
 
-    emit_plain_instruction(builder, DUP); // c
-    emit_push(builder, 0xffffffffff);
-    emit_plain_instruction(builder, LT); // c < 0xff
-
-    emit_jump_if_true(builder, loop_label);
-
-    emit_str(builder, "Done!\n");
-
+    link_label(builder, newline_label);
+    emit_str(builder, "\n");
     emit_plain_instruction(builder, PNT);
+
+    emit_plain_instruction(builder, INC);
+
+    emit_plain_instruction(builder, DUP);
+    
+    emit_push(builder, 100);
+    emit_plain_instruction(builder, LT);
+    emit_jump_if_true(builder, loop_label);
 
     emit_plain_instruction(builder, EXT);
 }

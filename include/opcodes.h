@@ -8,6 +8,7 @@
     X(LDR, 0x02) \
     X(ADD, 0x03) \
     X(SUB, 0x04) \
+    X(MOD, 0x05) \
     X(EQU, 0x06) \
     X(LT , 0x09) \
     X(DBG, 0x10) \

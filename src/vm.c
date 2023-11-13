@@ -92,7 +92,15 @@ void execute_byte(VM *vm, OpCode op) {
 
             u64 a = pop_u64_from_stack(&vm->stack);
             u64 b = pop_u64_from_stack(&vm->stack);
-            push_u64_to_stack(&vm->stack, a + b);
+            push_u64_to_stack(&vm->stack, b + a);
+            break;
+        }
+        case MOD: {
+            VERBOSE_LOG("[%zx] Modulo two ints\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+            push_u64_to_stack(&vm->stack, b % a);
             break;
         }
         case JMP: {
@@ -146,7 +154,7 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case DBG: {
             u64 num = pop_u64_from_stack(&vm->stack);
-            printf("Debug: %llu\n", num);
+            printf("Debug: %llu", num);
             break;
         }
         case EXT: {
@@ -183,6 +191,20 @@ void execute_byte(VM *vm, OpCode op) {
             u64 value = pop_u64_from_stack(&vm->stack);
             push_u64_to_stack(&vm->stack, value);
             push_u64_to_stack(&vm->stack, value);
+            break;
+        }
+        case SWP: {
+            VERBOSE_LOG("[%zx] Swapping the top two stack values\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+
+            push_u64_to_stack(&vm->stack, a);
+            push_u64_to_stack(&vm->stack, b);
+            break;
+        }
+        case DRP: {
+            (void) pop_u64_from_stack(&vm->stack);
             break;
         }
         case ROT: {

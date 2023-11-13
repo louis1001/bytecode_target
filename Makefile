@@ -2,7 +2,7 @@ SRC_FILES = src/main.c src/program_builder.c src/program.c src/vm.c src/opcodes.
 BUILD_DIR = build
 CC_FLAGS = -Wall -Wpedantic -Wextra -Wno-variadic-macros -Werror -g -std=c11
 INCLUDES = -Iinclude
-BUILD_OPTIONS = -DDEBUG=1 -DVERBOSE=0
+BUILD_OPTIONS = -DDEBUG=0 -DVERBOSE=0
 CC = clang
 
 all: build prog
