@@ -179,9 +179,9 @@ HashEntry *find_entry(HashMap* map, char* key) {
 
     usize index = hash % map->capacity;
 
-    printf("Finding value for `%s`\n", key);
-    printf("The hash for `%s` is: 0x%llx\n", key, hash);
-    printf("The first bucket selected is %zu\n", index);
+    VERBOSE_LOG("Finding value for `%s`\n", key);
+    VERBOSE_LOG("The hash for `%s` is: 0x%llx\n", key, hash);
+    VERBOSE_LOG("The first bucket selected is %zu\n", index);
 
     HashEntry *bucket = &map->data[index];
     if (bucket->taken) {
@@ -202,9 +202,9 @@ HashEntry *insert_hash_map(HashMap *map, char *key, u64 value) {
     u64 index = hash%map->capacity;
     u64 original_index = index;
 
-    printf("Inserting value for `%s`\n", key);
-    printf("The hash for `%s` is: 0x%llx\n", key, hash);
-    printf("The first bucket selected is %llu\n", index);
+    VERBOSE_LOG("Inserting value for `%s`\n", key);
+    VERBOSE_LOG("The hash for `%s` is: 0x%llx\n", key, hash);
+    VERBOSE_LOG("The first bucket selected is %llu\n", index);
     HashEntry *bucket = &map->data[index];
     while (bucket->taken) {
         if (strcmp(bucket->key.str, key) == 0) {

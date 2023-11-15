@@ -56,7 +56,7 @@ u64 assemble_u64_literal(Assembler *assembler) {
     }
 
     u64 result = strtoull(literal.str, NULL, 0);
-    printf("Trying to parse `%s` as numeric operand: `%llu`\n", literal.str, result);
+    VERBOSE_LOG("Trying to parse `%s` as numeric operand: `%llu`\n", literal.str, result);
 
     free_string_buffer(&literal);
 
@@ -127,7 +127,7 @@ Program assemble(Assembler *assembler) {
                 OpCode opcode = NOP;
                 ASSERT(string_to_opcode(&opcode, buf.str), "Invalid instruction `%s`", buf.str);
 
-                printf("Found instruction `%s`\n", buf.str);
+                LOG("Found instruction `%s`\n", buf.str);
 
                 switch (opcode) {
                     case PSH: {
@@ -187,7 +187,7 @@ Program assemble(Assembler *assembler) {
 
             u64 label_id;
             if (!entry) {
-                printf("Found a new label called `%s`\n", buf.str);
+                LOG("Found a new label called `%s`\n", buf.str);
                 label_id = create_label(&pb);
                 entry = insert_hash_map(&assembler->labels, buf.str, label_id);
             } else {
@@ -246,15 +246,15 @@ int assemble_file(char *input_file) {
 
     fclose(file);
 
-    printf("Read the file!\n");
-    printf("%s\n", contents);
-
     assembler.current_pos = 0;
     assembler.count = file_size;
     assembler.code = contents;
 
     Program program = assemble(&assembler);
+
+    #if DEBUG
     debug_print_hash_map(&assembler.labels);
+    #endif // DEBUG
     
     execute(&program);
     
