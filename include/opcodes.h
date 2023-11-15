@@ -1,5 +1,6 @@
 #ifndef OPCODES_H
 #define OPCODES_H
+#include "core.h"
 
 // A macro to define the list of opcodes (with a defined BASE_T value) and their names
 // https://stackoverflow.com/questions/147267/easy-way-to-use-variables-of-enum-types-as-string-in-c
@@ -41,5 +42,7 @@ typedef enum {
 char *opcode_to_str(OpCode op);
 
 void print_opcode(OpCode op);
+
+bool string_to_opcode(OpCode *dst, char *str);
 
 #endif // OPCODES_H

@@ -1,0 +1,156 @@
+[
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/main.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/main.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/program_builder.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/program_builder.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/program.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/program.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/vm.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/vm.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/opcodes.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/opcodes.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/core.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/core.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  },
+  {
+    "arguments": [
+      "/opt/homebrew/opt/llvm/bin/clang",
+      "-c",
+      "-Wall",
+      "-Wpedantic",
+      "-Wextra",
+      "-Wno-variadic-macros",
+      "-Werror",
+      "-g",
+      "-std=c11",
+      "-DDEBUG=0",
+      "-DVERBOSE=0",
+      "-Iinclude",
+      "-o",
+      "build/vm",
+      "src/assembler.c"
+    ],
+    "directory": "/Users/louis1001/Documents/Projects/C/vm_in_c",
+    "file": "/Users/louis1001/Documents/Projects/C/vm_in_c/src/assembler.c",
+    "output": "/Users/louis1001/Documents/Projects/C/vm_in_c/build/vm"
+  }
+]

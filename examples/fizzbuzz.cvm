@@ -1,0 +1,53 @@
+    psh 0x00000001
+loop:
+    dup 
+    psh 0x00000003
+    mod 
+    psh 1
+    equ
+    psh 'print_fizz
+    jpt 
+    psh 0x00000000 
+    swp 
+    psh 'check_buzz
+    jmp 
+print_fizz:
+    str "Fizz"
+    pnt 
+    psh 0x00000001 
+    swp 
+check_buzz:
+    dup 
+    psh 0x00000005 
+    mod 
+    psh 0x00000000 
+    equ 
+    psh 'print_buzz
+    jpt 
+    swp 
+    psh 0x00000001 
+    equ 
+    psh 'newline
+    jpt 
+    psh 'else
+    jmp 
+print_buzz:
+    swp 
+    drp 
+    str "Buzz"
+    pnt 
+    psh 'newline
+    jmp 
+else:
+    dup 
+    dbg 
+newline:
+    str "\n"
+    pnt 
+    inc 
+    dup 
+    psh 0x00000064
+    lt 
+    psh 'loop
+    jpt 
+    ext

@@ -154,7 +154,7 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case DBG: {
             u64 num = pop_u64_from_stack(&vm->stack);
-            printf("Debug: %llu", num);
+            printf("%llu", num);
             break;
         }
         case EXT: {

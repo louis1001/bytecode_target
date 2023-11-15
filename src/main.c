@@ -1,11 +1,10 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "core.h"
 #include "opcodes.h"
 #include "program.h"
 #include "vm.h"
 #include "program_builder.h"
+#include "assembler.h"
+#include <string.h>
 
 void dump_program_to_file(Program *program, char *file_path) {
     FILE *file = fopen(file_path, "wb");
@@ -82,14 +81,14 @@ void build_program(ProgramBuilder *builder) {
 
     emit_plain_instruction(builder, DUP);
     
-    emit_push(builder, 100);
+    emit_push(builder, 50);
     emit_plain_instruction(builder, LT);
     emit_jump_if_true(builder, loop_label);
 
     emit_plain_instruction(builder, EXT);
 }
 
-int main(void) {
+void execute_example(void) {
     ProgramBuilder pb = {0};
     init_program_builder(&pb);
 
@@ -108,10 +107,33 @@ int main(void) {
     print_program(&program);
     #endif
 
+    printf("FizzBuzz Example:\n");
     execute(&program);
     // debug_execute(&program);
 
     destroy_program(&program);
+}
+
+int main(int argc, char **argv) {
+     bool use_example = true;
+     if (argc > 1) {
+         char* mode = argv[1];
+
+        if (strcmp(mode, "asm") == 0) {
+            ASSERT(argc > 2, "Assembler needs an input file\n");
+
+            char* input_file = argv[2];
+
+            int result = assemble_file(input_file);
+
+            return result;
+        }
+     }
+
+     if (use_example) {
+         execute_example();
+     }
 
     return 0;
 }
+
