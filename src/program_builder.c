@@ -147,10 +147,31 @@ void debug_print_program_builder(ProgramBuilder *builder) {
         size += 1 + operand_size;
     }
 
-    // Print the instructions as a disassembly
+    u64 labels[builder->current_label];
+
     for (usize i = 0; i < builder->instructions.count; i++) {
         Instruction *inst = &builder->instructions.data[i];
-        printf("[0x%03zx]\t%-s ", addresses[i], opcode_to_str(inst->opcode));
+        if (inst->operand_is_label) {
+            ASSERT(inst->operands.count == 1, "Label should be the only operand\n");
+            Operand *operand = &inst->operands.data[0];
+
+            ASSERT(operand->type == OPERAND_U64, "Label index should be 64bit long\n");
+
+            u64 address = builder->labels[operand->as.u64];
+            labels[operand->as.u64] = (u64)addresses[address];
+        }
+    }
+
+    // Print the instructions as a disassembly
+    for (usize i = 0; i < builder->instructions.count; i++) {
+        for (usize l = 0; l < builder->current_label; l++) {
+            if (builder->labels[l] == i) {
+                printf("\nlabel#%zu:\n", l);
+            }
+        }
+
+        Instruction *inst = &builder->instructions.data[i];
+        printf("  [0x%03zx]\t%-s ", addresses[i], opcode_to_str(inst->opcode));
         if (inst->opcode == STR) {
             printf("\"");
             for (usize j = 0; j < inst->operands.count; j++) {
@@ -173,6 +194,9 @@ void debug_print_program_builder(ProgramBuilder *builder) {
                 }
             }
             printf("\"");
+        } else if (inst->operand_is_label) {
+            u64 address = inst->operands.data[0].as.u64;
+            printf("'label#%llu", address);
         } else {
             for (usize j = 0; j < inst->operands.count; j++) {
                 Operand *operand = &inst->operands.data[j];            
@@ -215,6 +239,8 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
         size += 1 + operand_size;
     }
 
+    u64 labels[builder->current_label];
+
     // Then resolve the labels.
     // Each value in builder->labels is the index of the instruction that the label points to.
     // We need to replace the label with the address of the instruction.
@@ -227,7 +253,7 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
             u64 index = inst->operands.data[0].as.u64;
             usize label_addr = builder->labels[index];
             usize target_addr = addresses[label_addr];
-            inst->operands.data[0].as.u64 = (u64) target_addr;
+            labels[index] = target_addr;
 
             LOG("Replaced label %llu value from %zu to 0x%zx\n", index, label_addr, target_addr);
         }
@@ -252,10 +278,17 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
         
         // Can't just memcpy the whole thing because of the OperandData union, for now go one by one
         usize operand_size = 0;
-        for (usize j = 0; j < inst->operands.count; j++) {
-            Operand *operand = &inst->operands.data[j];
-            memcpy(mem_start + operand_size, &operand->as, operand->type);
-            operand_size += operand->type;
+        if (inst->operand_is_label) {
+            u64 label_id = inst->operands.data[0].as.u64;
+            u64 label_address = labels[label_id];
+
+            memcpy(mem_start, &label_address, sizeof(u64));
+        } else {
+            for (usize j = 0; j < inst->operands.count; j++) {
+                Operand *operand = &inst->operands.data[j];
+                memcpy(mem_start + operand_size, &operand->as, operand->type);
+                operand_size += operand->type;
+            }
         }
     }
 }
