@@ -1,0 +1,59 @@
+# This makes it so we can have a section at the top full of callable functions
+# The beginning of the program just skips everything before start
+psh 'start
+jmp
+
+mult: # Stack when entering: bottom | a b ret_addr | top
+rot # | b ret_addr a |
+rot # | ret_addr a b |
+
+psh 0 # | ret_addr a b acc |
+
+mult_loop:
+# if b < 1: end loop
+ovr   # | ret_addr a b acc b |
+
+psh 1 # | ret_addr a b acc b 1 |
+lt    # | ret_addr a b acc 0 |
+
+psh 'end_mult_loop
+jpt   # | ret_addr a b acc |
+
+swp   # | ret_addr a acc b |
+rot
+rot   # | ret_addr b a acc |
+ovr   # | ret_addr b a acc a |
+add   # | ret_addr b a acc |
+
+rot   # | ret_addr a acc b |
+dec
+swp   # | ret_addr a b acc |
+
+psh 'mult_loop
+jmp
+
+end_mult_loop: # | ret_addr a b acc |
+swp            # | ret_addr a acc b |
+drp            # | ret_addr a acc |
+swp            # | ret_addr acc a |
+drp            # | ret_addr acc |
+swp            # | acc ret_addr |
+
+# Stack before jump should be:
+# | result ret_addr |
+jmp # jumps to the provided return position.
+
+start:
+
+str "Starting\n"
+pnt
+psh 7 # a
+psh 13 # b
+psh 'mult
+cll
+str "7 * 13: "
+pnt
+dbg
+str "\n"
+pnt
+ext

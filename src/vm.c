@@ -87,6 +87,12 @@ void execute_byte(VM *vm, OpCode op) {
             }
             break;
         }
+        case PCH: {
+            VERBOSE_LOG("[%zx] Printing char\n", vm->pc);
+
+            u8 c = pop_u64_from_stack(&vm->stack);
+            putc((int)c, stdout);
+        }
         case ADD: {
             VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
 
@@ -101,6 +107,18 @@ void execute_byte(VM *vm, OpCode op) {
             u64 a = pop_u64_from_stack(&vm->stack);
             u64 b = pop_u64_from_stack(&vm->stack);
             push_u64_to_stack(&vm->stack, b % a);
+            break;
+        }
+        case CLL: {
+            // This will jump to the latest label, pushing the current position to the stack
+            u64 pos = vm->pc;
+            u64 target = pop_u64_from_stack(&vm->stack);
+
+            push_u64_to_stack(&vm->stack, pos);
+            LOG("Calling to address 0x%llx\n", target);
+            // printf("Pushed return address: 0x%llx\n", pos);
+            vm->pc = (usize) target;
+            VERBOSE_LOG("The new pc is 0x%zx\n", vm->pc);
             break;
         }
         case JMP: {
@@ -209,14 +227,26 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case ROT: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
-            ASSERT(vm->stack.sp >= 3, "Stack has enough values");
+            ASSERT(vm->stack.sp >= 3, "Stack has enough values\n");
 
             u64 a = pop_u64_from_stack(&vm->stack);
             u64 b = pop_u64_from_stack(&vm->stack);
             u64 c = pop_u64_from_stack(&vm->stack);
 
+            push_u64_to_stack(&vm->stack, b);
             push_u64_to_stack(&vm->stack, a);
             push_u64_to_stack(&vm->stack, c);
+            break;
+        }
+        case OVR: {
+            VERBOSE_LOG("[%zx] Duplicating the value below the top of the stack\n", vm->pc);
+            ASSERT(vm->stack.sp >= 2, "Stack has enough values\n");
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+
+            push_u64_to_stack(&vm->stack, b);
+            push_u64_to_stack(&vm->stack, a);
             push_u64_to_stack(&vm->stack, b);
             break;
         }
