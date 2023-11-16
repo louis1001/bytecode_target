@@ -10,15 +10,18 @@
     X(ADD, 0x03) \
     X(SUB, 0x04) \
     X(MOD, 0x05) \
-    X(EQU, 0x06) \
+    X(DIV, 0x06) \
+    X(MUL, 0x07) \
+    X(EQU, 0x08) \
     X(LT , 0x09) \
-    X(DBG, 0x10) \
+    X(GT , 0x1B) \
     X(JMP, 0x0A) \
-    X(STR, 0x0E) \
     X(JPT, 0x0B) \
     X(JPF, 0x0C) \
     X(CLL, 0x0d) \
+    X(STR, 0x0E) \
     X(PNT, 0x0F) \
+    X(DBG, 0x10) \
     X(PCH, 0x20) \
     X(INC, 0x11) \
     X(DEC, 0x12) \
@@ -37,7 +40,7 @@ typedef enum {
 } OpCode;
 #undef X
 
-// PNT -> Considers the top of the stack as an index to a string and prints it
+// PNT -> Considers the top of the stack a number with the length and a pointer to string and prints it
 // By default, all stack operations will work on 64-bit values
 
 char *opcode_to_str(OpCode op);

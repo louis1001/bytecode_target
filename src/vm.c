@@ -92,6 +92,7 @@ void execute_byte(VM *vm, OpCode op) {
 
             u8 c = pop_u64_from_stack(&vm->stack);
             putc((int)c, stdout);
+            break;
         }
         case ADD: {
             VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
@@ -107,6 +108,15 @@ void execute_byte(VM *vm, OpCode op) {
             u64 a = pop_u64_from_stack(&vm->stack);
             u64 b = pop_u64_from_stack(&vm->stack);
             push_u64_to_stack(&vm->stack, b % a);
+            break;
+        }
+        case DIV: {
+            VERBOSE_LOG("[%zx] Dividing two ints\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+
+            push_u64_to_stack(&vm->stack, b / a);
             break;
         }
         case CLL: {
@@ -135,7 +145,7 @@ void execute_byte(VM *vm, OpCode op) {
 
             u8 condition = pop_from_stack(&vm->stack);
             if (condition) {
-                vm->pc = (usize) target; //FIXME: Do 32bit targets
+                vm->pc = (usize) target;
             }
             break;
         }
@@ -166,6 +176,17 @@ void execute_byte(VM *vm, OpCode op) {
             u64 b = pop_u64_from_stack(&vm->stack);
 
             bool result = b < a;
+
+            push_to_stack(&vm->stack, result);
+            break;
+        }
+        case GT: {
+            VERBOSE_LOG("[%zx] Checking if greater than\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+
+            bool result = b > a;
 
             push_to_stack(&vm->stack, result);
             break;

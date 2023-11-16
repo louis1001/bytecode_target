@@ -124,9 +124,12 @@ int main(int argc, char **argv) {
 
             char* input_file = argv[2];
 
-            int result = assemble_file(input_file);
+            Program result = assemble_file(input_file);
 
-            return result;
+            debug_execute(&result);
+            destroy_program(&result);
+
+            return 0;
         }
      }
 

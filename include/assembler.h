@@ -21,6 +21,6 @@ StringBuffer assemble_string_literal(Assembler *assembler);
 
 Program assemble(Assembler *assembler);
 
-int assemble_file(char *input_file);
+Program assemble_file(char *input_file);
 
 #endif //ndef ASSEMBLER_H

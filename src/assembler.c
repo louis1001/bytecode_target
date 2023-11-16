@@ -229,7 +229,7 @@ void debug_print_hash_map(HashMap *map) {
     }
 }
 
-int assemble_file(char *input_file) {
+Program assemble_file(char *input_file) {
     Assembler assembler = {0};
     init_assembler(&assembler);
     FILE *file = fopen(input_file, "rb");
@@ -256,11 +256,8 @@ int assemble_file(char *input_file) {
     debug_print_hash_map(&assembler.labels);
     #endif // DEBUG
     
-    execute(&program);
-    
     free_assembler(&assembler);
-    destroy_program(&program);
     free(contents);
 
-    return 0;
+    return program;
 }

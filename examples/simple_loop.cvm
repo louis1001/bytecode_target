@@ -1,0 +1,33 @@
+# This example is a countdown from 20 to 1.
+# TODO: Refactor later and make an actual print_number function
+
+psh 'start
+jmp
+# pseudo functions for now. replace with macros?
+print_number: # Initial Stack: bottom | n ret_addr | top
+swp # | ret_addr n |
+dbg # Temp. Implement actual int print later.
+jmp
+
+start:
+psh 20
+loop_start:
+dup
+psh 1
+lt
+psh 'loop_end
+jpt
+dup
+psh 'print_number
+cll
+str "\n"
+pnt
+dec
+psh 'loop_start
+bkp
+jmp
+
+loop_end:
+str "Done\n"
+pnt
+ext
