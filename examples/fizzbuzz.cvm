@@ -1,31 +1,31 @@
-    psh 0x00000001
+    psh 1
 loop:
     dup 
-    psh 0x00000003
+    psh 3
     mod 
     psh 1
     equ
     psh 'print_fizz
     jpt 
-    psh 0x00000000 
+    psh 0
     swp 
     psh 'check_buzz
     jmp 
 print_fizz:
     str "Fizz"
     pnt 
-    psh 0x00000001 
+    psh 1
     swp 
 check_buzz:
     dup 
-    psh 0x00000005 
+    psh 5
     mod 
-    psh 0x00000000 
+    psh 0
     equ 
     psh 'print_buzz
     jpt 
     swp 
-    psh 0x00000001 
+    psh 1
     equ 
     psh 'newline
     jpt 
@@ -46,7 +46,7 @@ newline:
     pnt 
     inc 
     dup 
-    psh 0x00000064
+    psh 40
     lt 
     psh 'loop
     jpt 
