@@ -1,0 +1,37 @@
+# This is an example of memory dereferencing on the vm
+
+    psh 'start jmp
+# Setup point. Not executed unless called
+print_str: # Takes stack: bottom | str_ptr len ret_addr | top
+    rot
+    rot
+    
+string_print_loop:
+    dup
+    psh 0
+    equ
+    psh 'cleanup_string_print
+    jpt
+
+    # Stack at this point
+    # | str_ptr len |
+    swp
+    dup # | len str_ptr str_ptr |
+    rf8 # | len str_ptr |
+    pch
+    inc # Move the string pointer one forward
+    swp
+    dec # len - 1
+
+    psh 'string_print_loop
+    jmp
+
+cleanup_string_print: # stack at this point | ret_addr str_ptr len |
+    drp # drop the length
+    drp # drop the string pointer
+    jmp # returns | |
+
+start:
+    str "Hello, world\n"
+    psh 'print_str
+    cll
