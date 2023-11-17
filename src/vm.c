@@ -90,7 +90,7 @@ void execute_byte(VM *vm, OpCode op) {
         case PCH: {
             VERBOSE_LOG("[%zx] Printing char\n", vm->pc);
 
-            u8 c = pop_u64_from_stack(&vm->stack);
+            u8 c = pop_from_stack(&vm->stack);
             putc((int)c, stdout);
             break;
         }
@@ -189,6 +189,22 @@ void execute_byte(VM *vm, OpCode op) {
             bool result = b > a;
 
             push_to_stack(&vm->stack, result);
+            break;
+        }
+        case REF: {
+            VERBOSE_LOG("[%zx] Dereferencing a pointer\n", vm->pc);
+            u64 ptr_num = pop_u64_from_stack(&vm->stack);
+            u64 value = *((u64*)ptr_num);
+
+            push_u64_to_stack(&vm->stack, value);
+            break;
+        }
+        case RF8: {
+            VERBOSE_LOG("[%zx] Dereferencing a u8 pointer\n", vm->pc);
+            u64 ptr_num = pop_u64_from_stack(&vm->stack);
+            u8 value = *((u64*)ptr_num);
+
+            push_to_stack(&vm->stack, value);
             break;
         }
         case DBG: {

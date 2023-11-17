@@ -31,6 +31,8 @@
     X(DRP, 0x16) \
     X(ROT, 0x17) \
     X(OVR, 0x18) \
+    X(REF, 0x30) \
+    X(RF8, 0x31) \
     X(BKP, 0xFE) \
     X(EXT, 0xFF)
 

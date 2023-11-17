@@ -1,0 +1,18 @@
+# A simple example of how to use pointers in the stack machine
+
+    psh 'start jmp
+
+start:
+    str "Y" # | str_ptr len |
+    # To print the first character of the string:
+    swp              # | len str_ptr |
+    dup              # | len srt_ptr str_ptr |
+    rf8              # | len str_ptr 'W' |
+    # ref -> 64bit | rf8 -> 8bit
+    # Output: Y
+    pch              # | len str_ptr |
+    swp
+    drp drp # discard the string
+
+    str " <- a char accesed via pointer (u8*)\n"
+    pnt
