@@ -39,7 +39,7 @@ void build_program(ProgramBuilder *builder) {
 
     link_label(builder, print_fizz_label);
     emit_str(builder, "Fizz");
-    emit_plain_instruction(builder, PNT);
+    emit_plain_instruction(builder, PTS);
     emit_push(builder, 1); // did_fizz = true
     emit_plain_instruction(builder, SWP);
 
@@ -66,7 +66,7 @@ void build_program(ProgramBuilder *builder) {
     emit_plain_instruction(builder, DRP);
 
     emit_str(builder, "Buzz");
-    emit_plain_instruction(builder, PNT);
+    emit_plain_instruction(builder, PTS);
     emit_jump(builder, newline_label);
 
     link_label(builder, else_label);
@@ -75,7 +75,7 @@ void build_program(ProgramBuilder *builder) {
 
     link_label(builder, newline_label);
     emit_str(builder, "\n");
-    emit_plain_instruction(builder, PNT);
+    emit_plain_instruction(builder, PTS);
 
     emit_plain_instruction(builder, INC);
 
@@ -97,9 +97,9 @@ void execute_example(void) {
     Program program = create_program();
     clone_to_program(&pb, &program);
 
-    // #if DEBUG
+    #if DEBUG
     debug_print_program_builder(&pb);
-    // #endif
+    #endif
 
     free_program_builder(&pb);
 

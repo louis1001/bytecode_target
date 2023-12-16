@@ -13,7 +13,7 @@ loop:
     jmp 
 print_fizz:
     str "Fizz"
-    pnt 
+    pts 
     psh 1
     swp 
 check_buzz:

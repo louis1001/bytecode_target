@@ -232,19 +232,8 @@ void debug_print_hash_map(HashMap *map) {
 Program assemble_file(char *input_file) {
     Assembler assembler = {0};
     init_assembler(&assembler);
-    FILE *file = fopen(input_file, "rb");
-    ASSERT(file != NULL, "Able to open file\n");
-
-    char *file_contents = NULL;
-    (void)file_contents;
-    fseek(file, 0l, SEEK_END);
-    usize file_size = ftell(file);
-    rewind(file);
-
-    char *contents = calloc(file_size, sizeof(char));
-    fread(contents, sizeof(char), file_size, file);
-
-    fclose(file);
+    usize file_size;
+    char *contents = read_all_from_file(input_file, &file_size);
 
     assembler.current_pos = 0;
     assembler.count = file_size;

@@ -238,3 +238,22 @@ HashEntry *insert_hash_map(HashMap *map, char *key, u64 value) {
     return NULL;
 }
 
+char *read_all_from_file(const char *file_path, usize *length) {
+    FILE *file = fopen(file_path, "rb");
+    ASSERT(file != NULL, "Able to open file\n");
+
+    char *file_contents = NULL;
+    (void)file_contents;
+    fseek(file, 0l, SEEK_END);
+    usize file_size = ftell(file);
+    rewind(file);
+
+    char *output = calloc(file_size, sizeof(char));
+    fread(output, sizeof(char), file_size, file);
+
+    fclose(file);
+
+    *length = file_size;
+
+    return output;
+}

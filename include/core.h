@@ -79,4 +79,5 @@ void grow_hash_map(HashMap* map);
 HashEntry *find_entry(HashMap* map, char* key); // FIXME: Accept StringBuffer too?
 HashEntry *insert_hash_map(HashMap* map, char* key, u64 value);
 
+char* read_all_from_file(const char *file_path, usize *length);
 #endif // CORE_H

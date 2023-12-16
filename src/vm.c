@@ -75,7 +75,7 @@ void execute_byte(VM *vm, OpCode op) {
             push_u64_to_stack(&vm->stack, str_length);
             break;
         }
-        case PNT: {
+        case PTS: {
             VERBOSE_LOG("[%zx] Printing string\n", vm->pc);
 
             u64 str_length = pop_u64_from_stack(&vm->stack);
@@ -87,7 +87,7 @@ void execute_byte(VM *vm, OpCode op) {
             }
             break;
         }
-        case PCH: {
+        case PTC: {
             VERBOSE_LOG("[%zx] Printing char\n", vm->pc);
 
             u8 c = pop_from_stack(&vm->stack);
@@ -108,6 +108,15 @@ void execute_byte(VM *vm, OpCode op) {
             u64 a = pop_u64_from_stack(&vm->stack);
             u64 b = pop_u64_from_stack(&vm->stack);
             push_u64_to_stack(&vm->stack, b % a);
+            break;
+        }
+        case MUL: {
+            VERBOSE_LOG("[%zx] Dividing two ints\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(&vm->stack);
+            u64 b = pop_u64_from_stack(&vm->stack);
+
+            push_u64_to_stack(&vm->stack, b * a);
             break;
         }
         case DIV: {
@@ -145,18 +154,24 @@ void execute_byte(VM *vm, OpCode op) {
 
             u8 condition = pop_from_stack(&vm->stack);
             if (condition) {
+                VERBOSE_LOG("[%zx] Was true, jumping\n", vm->pc);
                 vm->pc = (usize) target;
+            } else {
+                VERBOSE_LOG("[%zx] Was false, not jumpint\n", vm->pc);
             }
             break;
         }
         case JPF: {
-            VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
+            VERBOSE_LOG("[%zx] Jumping if false\n", vm->pc);
 
             u64 target = pop_u64_from_stack(&vm->stack);
 
             u8 condition = pop_from_stack(&vm->stack);
             if (!condition) {
+                VERBOSE_LOG("[%zx] Was false, jumping\n", vm->pc);
                 vm->pc = (usize) target;
+            } else {
+                VERBOSE_LOG("[%zx] Was true, not jumping\n", vm->pc);
             }
             break;
         }
@@ -187,6 +202,27 @@ void execute_byte(VM *vm, OpCode op) {
             u64 b = pop_u64_from_stack(&vm->stack);
 
             bool result = b > a;
+
+            push_to_stack(&vm->stack, result);
+            break;
+        }
+        case NOT: {
+            VERBOSE_LOG("[%zx] Negating a value\n", vm->pc);
+
+            bool a = pop_from_stack(&vm->stack);
+
+            bool result = !a;
+
+            push_to_stack(&vm->stack, result);
+            break;
+        }
+        case OR: {
+            VERBOSE_LOG("[%zx] Negating a value\n", vm->pc);
+
+            bool a = pop_from_stack(&vm->stack);
+            bool b = pop_from_stack(&vm->stack);
+
+            bool result = a || b;
 
             push_to_stack(&vm->stack, result);
             break;
@@ -240,6 +276,14 @@ void execute_byte(VM *vm, OpCode op) {
             push_u64_to_stack(&vm->stack, value);
             break;
         }
+        case PS8: {
+            VERBOSE_LOG("[%zx] Pushing a byte to the stack\n", vm->pc);
+
+            u8 value = get_next_u8_from_program(vm);
+
+            push_to_stack(&vm->stack, value);
+            break;
+        }
         case DUP: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
 
@@ -263,7 +307,7 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         case ROT: {
-            VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
+            VERBOSE_LOG("[%zx] Rotating top 3 values in the stack\n", vm->pc);
             ASSERT(vm->stack.sp >= 3, "Stack has enough values\n");
 
             u64 a = pop_u64_from_stack(&vm->stack);

@@ -15,14 +15,16 @@
     X(EQU, 0x08) \
     X(LT , 0x09) \
     X(GT , 0x1B) \
+    X(NOT, 0x21) \
+    X(OR , 0x22) \
     X(JMP, 0x0A) \
     X(JPT, 0x0B) \
     X(JPF, 0x0C) \
     X(CLL, 0x0d) \
     X(STR, 0x0E) \
-    X(PNT, 0x0F) \
+    X(PTS, 0x0F) \
     X(DBG, 0x10) \
-    X(PCH, 0x20) \
+    X(PTC, 0x20) \
     X(INC, 0x11) \
     X(DEC, 0x12) \
     X(PSH, 0x13) \
@@ -33,6 +35,7 @@
     X(OVR, 0x18) \
     X(REF, 0x30) \
     X(RF8, 0x31) \
+    X(PS8, 0x40) \
     X(BKP, 0xFE) \
     X(EXT, 0xFF)
 
