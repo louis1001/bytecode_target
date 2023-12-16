@@ -131,6 +131,29 @@ int main(int argc, char **argv) {
 
             return 0;
         }
+
+        if (strcmp(mode, "bin") == 0) {
+            ASSERT(argc > 2, "Binary execution needs an input file\n");
+
+            char* input_file = argv[2];
+
+            usize length;
+            const char *contents = read_all_from_file(input_file, &length);
+
+            Program program = {
+                .code = (u8 *)contents,
+                .size = length
+            };
+
+            #if DEBUG
+            print_program(&program);
+            #endif
+
+            debug_execute(&program);
+            destroy_program(&program);
+
+            return 0;
+        }
      }
 
      if (use_example) {
