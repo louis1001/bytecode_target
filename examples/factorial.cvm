@@ -1,0 +1,38 @@
+    psh 'start
+    jmp
+
+factorial:
+    psh 8
+    tks
+
+    dup
+    psh 2
+    lt
+    psh 'fact_end
+    jpt             # if n < 2 return n
+    
+    dup
+    psh 1
+    sub
+    
+    psh 'factorial
+    cll
+
+    mul
+
+fact_end:
+    ret
+
+start:
+    psh 20
+    str "Factorial of "
+    pts
+    dup dbg
+    str ": "
+    pts
+    psh 'factorial
+    cll
+    dbg
+    str "\n"
+    pts
+    ext

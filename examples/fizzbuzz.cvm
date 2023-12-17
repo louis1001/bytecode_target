@@ -35,7 +35,7 @@ print_buzz:
     swp 
     drp 
     str "Buzz"
-    pnt 
+    pts 
     psh 'newline
     jmp 
 else:
@@ -43,7 +43,7 @@ else:
     dbg 
 newline:
     str "\n"
-    pnt 
+    pts 
     inc 
     dup 
     psh 40

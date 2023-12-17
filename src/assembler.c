@@ -99,8 +99,62 @@ StringBuffer assemble_string_literal(Assembler *assembler) {
         }
     }
 
+    VERBOSE_LOG("Closing string literal with '%c'\n", assembler->code[assembler->current_pos]);
     assembler->current_pos++;
     return sb;
+}
+
+void resolve_instruction(Assembler *assembler, StringBuffer *buf, ProgramBuilder *pb) {
+    // Then I have a complete instruction
+    OpCode opcode = NOP;
+    ASSERT(string_to_opcode(&opcode, buf->str), "Invalid instruction `%s`", buf->str);
+
+    LOG("Found instruction `%s`\n", buf->str);
+
+    char c;
+
+    switch (opcode) {
+        case PSH: {
+            assemble_ignore_spaces(assembler);
+            c = assembler->code[assembler->current_pos];
+
+            if (c == '\'') {
+                // Handle a label operand
+                assembler->current_pos++;
+
+                bool is_existing = false;
+                HashEntry *label_in_table = assemble_label_literal(assembler, &is_existing);
+
+                u64 operand;
+                if (is_existing) {
+                    operand = label_in_table->value;
+                } else {
+                    u64 label_id = create_label(pb);
+                    operand = label_id;
+                    label_in_table->value = label_id;
+                }
+                emit_push_label(pb, operand);
+            } else {
+                u64 operand = assemble_u64_literal(assembler);
+                emit_push(pb, operand);
+            }
+            
+            break;
+        }
+        case STR: {
+            assemble_ignore_spaces(assembler);
+            StringBuffer literal = assemble_string_literal(assembler);
+
+            emit_str(pb, literal.str);
+
+            free_string_buffer(&literal);
+            break;
+        }
+        default: { // In case the instruction has no operands, just emit a plain instruction
+            emit_plain_instruction(pb, opcode);
+            break;
+        }
+    }
 }
 
 Program assemble(Assembler *assembler) {
@@ -123,54 +177,7 @@ Program assemble(Assembler *assembler) {
 
         if (isspace(c)) {
             if (buf.count > 0) {
-                // Then I have a complete instruction
-                OpCode opcode = NOP;
-                ASSERT(string_to_opcode(&opcode, buf.str), "Invalid instruction `%s`", buf.str);
-
-                LOG("Found instruction `%s`\n", buf.str);
-
-                switch (opcode) {
-                    case PSH: {
-                        assemble_ignore_spaces(assembler);
-                        c = assembler->code[assembler->current_pos];
-
-                        if (c == '\'') {
-                            // Handle a label operand
-                            assembler->current_pos++;
-
-                            bool is_existing = false;
-                            HashEntry *label_in_table = assemble_label_literal(assembler, &is_existing);
-
-                            u64 operand;
-                            if (is_existing) {
-                                operand = label_in_table->value;
-                            } else {
-                                u64 label_id = create_label(&pb);
-                                operand = label_id;
-                                label_in_table->value = label_id;
-                            }
-                            emit_push_label(&pb, operand);
-                        } else {
-                            u64 operand = assemble_u64_literal(assembler);
-                            emit_push(&pb, operand);
-                        }
-                        
-                        break;
-                    }
-                    case STR: {
-                        assemble_ignore_spaces(assembler);
-                        StringBuffer literal = assemble_string_literal(assembler);
-
-                        emit_str(&pb, literal.str);
-
-                        free_string_buffer(&literal);
-                        break;
-                    }
-                    default: { // In case the instruction has no operands, just emit a plain instruction
-                        emit_plain_instruction(&pb, opcode);
-                        break;
-                    }
-                }
+                resolve_instruction(assembler, &buf, &pb);
             } else {
                 continue;
             }
@@ -183,7 +190,6 @@ Program assemble(Assembler *assembler) {
             assembler->current_pos++;
 
             HashEntry *entry = find_entry(&assembler->labels, buf.str);
-
 
             u64 label_id;
             if (!entry) {
@@ -203,6 +209,10 @@ Program assemble(Assembler *assembler) {
         } else if (buf.count == 0) {}
 
         append_char_string_buffer(&buf, c);
+    }
+
+    if (buf.count > 0) {
+        resolve_instruction(assembler, &buf, &pb);
     }
 
     free_string_buffer(&buf);

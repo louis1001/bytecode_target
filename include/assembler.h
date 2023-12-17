@@ -2,6 +2,7 @@
 #define ASSEMBLER_H
 #include "core.h"
 #include "program.h"
+#include "program_builder.h"
 
 typedef struct {
     char *code;
@@ -19,6 +20,7 @@ HashEntry *assemble_label_literal(Assembler *assembler, bool *exists);
 u64 assemble_u64_literal(Assembler *assembler);
 StringBuffer assemble_string_literal(Assembler *assembler);
 
+void resolve_instruction(Assembler*, StringBuffer*, ProgramBuilder*);
 Program assemble(Assembler *assembler);
 
 Program assemble_file(char *input_file);

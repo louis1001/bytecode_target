@@ -14,9 +14,6 @@
     X(MUL, 0x07) \
     X(EQU, 0x08) \
     X(LT , 0x09) \
-    X(GT , 0x1B) \
-    X(NOT, 0x21) \
-    X(OR , 0x22) \
     X(JMP, 0x0A) \
     X(JPT, 0x0B) \
     X(JPF, 0x0C) \
@@ -24,7 +21,6 @@
     X(STR, 0x0E) \
     X(PTS, 0x0F) \
     X(DBG, 0x10) \
-    X(PTC, 0x20) \
     X(INC, 0x11) \
     X(DEC, 0x12) \
     X(PSH, 0x13) \
@@ -33,6 +29,12 @@
     X(DRP, 0x16) \
     X(ROT, 0x17) \
     X(OVR, 0x18) \
+    X(GT , 0x1B) \
+    X(PTC, 0x20) \
+    X(NOT, 0x21) \
+    X(OR , 0x22) \
+    X(RET, 0x23) \
+    X(TKS, 0x24) \
     X(REF, 0x30) \
     X(RF8, 0x31) \
     X(PS8, 0x40) \

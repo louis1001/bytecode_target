@@ -2,6 +2,24 @@
 #include "opcodes.h"
 #include <string.h>
 
+void push_to_call_stack(CallStack *st, StackFrame frame) {
+    ASSERT(st->sp < MAX_CALLSTACK_SIZE, "Max call stack size exceeded.\n");
+
+    st->storage[st->sp++] = frame;
+}
+
+StackFrame pop_from_call_stack(CallStack *st) {
+    ASSERT(st->sp > 0, "Not enough elements on the call stack.\n");
+
+    return st->storage[--st->sp];
+}
+
+StackFrame *current_stack_frame(CallStack *st) {
+    ASSERT(st->sp > 0, "Not enough elements on the call stack.\n");
+
+    return &st->storage[st->sp-1];
+}
+
 void push_to_stack(Stack* st, u8 value) {
     ASSERT(st->sp < MAX_STACK_SIZE, "Max stack size exceeded.\n");
 
@@ -15,18 +33,28 @@ void push_u64_to_stack(Stack* st, u64 value) {
     st->sp += sizeof(u64);
 }
 
-u8 pop_from_stack(Stack* st) {
-    ASSERT(st->sp > 0, "Not enough elements on the stack.\n");
+u8 pop_from_stack(VM *vm) {
+    Stack *stack = &vm->stack;
+    StackFrame *current_frame = current_stack_frame(&vm->call_stack);
+    ASSERT(stack->sp - 1 >= current_frame->stack_start, "Invalid access out of stack frame bounds.\n");
 
-    return st->storage[--st->sp];
+    return stack->storage[--stack->sp];
 }
 
-u64 pop_u64_from_stack(Stack* st) {
-    ASSERT(st->sp >= sizeof(u64), "Not enough elements on the stack.\n");
+u64 pop_u64_from_stack(VM *vm) {
+    Stack *stack = &vm->stack;
+    StackFrame *current_frame = current_stack_frame(&vm->call_stack);
+    ASSERT(
+        stack->sp - sizeof(u64) >= current_frame->stack_start,
+        "Invalid access out of stack frame bounds.\n"
+        "Trying to pop 8 elements from stack (%zu), but the bound is at %zu",
+        stack->sp,
+        current_frame->stack_start
+    );
 
     u64 value;
-    memcpy(&value, &st->storage[st->sp - sizeof(u64)], sizeof(u64));
-    st->sp -= sizeof(u64);
+    memcpy(&value, &stack->storage[stack->sp - sizeof(u64)], sizeof(u64));
+    stack->sp -= sizeof(u64);
     return value;
 }
 
@@ -78,8 +106,8 @@ void execute_byte(VM *vm, OpCode op) {
         case PTS: {
             VERBOSE_LOG("[%zx] Printing string\n", vm->pc);
 
-            u64 str_length = pop_u64_from_stack(&vm->stack);
-            const char *str = (const char*)pop_u64_from_stack(&vm->stack);
+            u64 str_length = pop_u64_from_stack(vm);
+            const char *str = (const char*)pop_u64_from_stack(vm);
             
             // Since the string is not null terminated, we need to print it manually
             for (usize i = 0; i < str_length; i++) {
@@ -90,31 +118,39 @@ void execute_byte(VM *vm, OpCode op) {
         case PTC: {
             VERBOSE_LOG("[%zx] Printing char\n", vm->pc);
 
-            u8 c = pop_from_stack(&vm->stack);
+            u8 c = pop_from_stack(vm);
             putc((int)c, stdout);
             break;
         }
         case ADD: {
             VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
             push_u64_to_stack(&vm->stack, b + a);
+            break;
+        }
+        case SUB: {
+            VERBOSE_LOG("[%zx] Adding two ints\n", vm->pc);
+
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
+            push_u64_to_stack(&vm->stack, b - a);
             break;
         }
         case MOD: {
             VERBOSE_LOG("[%zx] Modulo two ints\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
             push_u64_to_stack(&vm->stack, b % a);
             break;
         }
         case MUL: {
             VERBOSE_LOG("[%zx] Dividing two ints\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             push_u64_to_stack(&vm->stack, b * a);
             break;
@@ -122,37 +158,75 @@ void execute_byte(VM *vm, OpCode op) {
         case DIV: {
             VERBOSE_LOG("[%zx] Dividing two ints\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             push_u64_to_stack(&vm->stack, b / a);
             break;
         }
         case CLL: {
+            VERBOSE_LOG("[%zx] Calling to function pointer\n", vm->pc);
             // This will jump to the latest label, pushing the current position to the stack
             u64 pos = vm->pc;
-            u64 target = pop_u64_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(vm);
 
-            push_u64_to_stack(&vm->stack, pos);
+            StackFrame sf = {
+                .callee = target,
+                .caller_site = pos,
+                .stack_start = vm->stack.sp
+            };
+
+            push_to_call_stack(&vm->call_stack, sf);
             LOG("Calling to address 0x%llx\n", target);
             // printf("Pushed return address: 0x%llx\n", pos);
             vm->pc = (usize) target;
             VERBOSE_LOG("The new pc is 0x%zx\n", vm->pc);
             break;
         }
+        case RET: {
+            VERBOSE_LOG("[%zx] Returning\n", vm->pc);
+
+            StackFrame current_frame = pop_from_call_stack(&vm->call_stack);
+
+            // vm->stack.sp = current_frame.stack_start;
+            vm->pc = current_frame.caller_site;
+
+            VERBOSE_LOG("Returning to %#llx\n", current_frame.caller_site);
+            break;
+        }
+        case TKS: {
+            VERBOSE_LOG("[%zx] Setting the args size\n", vm->pc);
+
+            u64 args_size = pop_u64_from_stack(vm);
+            CallStack *call_stack = &vm->call_stack;
+            StackFrame *current_frame = current_stack_frame(&vm->call_stack);
+            ASSERT(vm->stack.sp >= args_size, "Not enough elements on the stack for function args.\n");
+            ASSERT(vm->stack.sp == current_frame->stack_start, "Opcode TKS must be used when the stack hasn't moved since calling the function.\n");
+
+            for (usize i = call_stack->sp-1; i > 0; i++) {
+                StackFrame *frame = &call_stack->storage[i];
+                if (vm->stack.sp - args_size < frame->stack_start) {
+                    frame->stack_start = vm->stack.sp - args_size;
+                } else {
+                    break;
+                }
+            }
+            
+            break;
+        }
         case JMP: {
             VERBOSE_LOG("[%zx] Jumping\n", vm->pc);
 
-            u64 target = pop_u64_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(vm);
             vm->pc = (usize) target;
             break;
         }
         case JPT: {
             VERBOSE_LOG("[%zx] Jumping if true\n", vm->pc);
 
-            u64 target = pop_u64_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(vm);
 
-            u8 condition = pop_from_stack(&vm->stack);
+            u8 condition = pop_from_stack(vm);
             if (condition) {
                 VERBOSE_LOG("[%zx] Was true, jumping\n", vm->pc);
                 vm->pc = (usize) target;
@@ -164,9 +238,9 @@ void execute_byte(VM *vm, OpCode op) {
         case JPF: {
             VERBOSE_LOG("[%zx] Jumping if false\n", vm->pc);
 
-            u64 target = pop_u64_from_stack(&vm->stack);
+            u64 target = pop_u64_from_stack(vm);
 
-            u8 condition = pop_from_stack(&vm->stack);
+            u8 condition = pop_from_stack(vm);
             if (!condition) {
                 VERBOSE_LOG("[%zx] Was false, jumping\n", vm->pc);
                 vm->pc = (usize) target;
@@ -178,8 +252,8 @@ void execute_byte(VM *vm, OpCode op) {
         case EQU: {
             VERBOSE_LOG("[%zx] Checking if equal\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             push_to_stack(&vm->stack, (u8) a == b);
             break;
@@ -187,8 +261,8 @@ void execute_byte(VM *vm, OpCode op) {
         case LT: {
             VERBOSE_LOG("[%zx] Checking if less than\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             bool result = b < a;
 
@@ -198,8 +272,8 @@ void execute_byte(VM *vm, OpCode op) {
         case GT: {
             VERBOSE_LOG("[%zx] Checking if greater than\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             bool result = b > a;
 
@@ -209,7 +283,7 @@ void execute_byte(VM *vm, OpCode op) {
         case NOT: {
             VERBOSE_LOG("[%zx] Negating a value\n", vm->pc);
 
-            bool a = pop_from_stack(&vm->stack);
+            bool a = pop_from_stack(vm);
 
             bool result = !a;
 
@@ -219,8 +293,8 @@ void execute_byte(VM *vm, OpCode op) {
         case OR: {
             VERBOSE_LOG("[%zx] Negating a value\n", vm->pc);
 
-            bool a = pop_from_stack(&vm->stack);
-            bool b = pop_from_stack(&vm->stack);
+            bool a = pop_from_stack(vm);
+            bool b = pop_from_stack(vm);
 
             bool result = a || b;
 
@@ -229,7 +303,7 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case REF: {
             VERBOSE_LOG("[%zx] Dereferencing a pointer\n", vm->pc);
-            u64 ptr_num = pop_u64_from_stack(&vm->stack);
+            u64 ptr_num = pop_u64_from_stack(vm);
             u64 value = *((u64*)ptr_num);
 
             push_u64_to_stack(&vm->stack, value);
@@ -237,14 +311,14 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case RF8: {
             VERBOSE_LOG("[%zx] Dereferencing a u8 pointer\n", vm->pc);
-            u64 ptr_num = pop_u64_from_stack(&vm->stack);
+            u64 ptr_num = pop_u64_from_stack(vm);
             u8 value = *((u64*)ptr_num);
 
             push_to_stack(&vm->stack, value);
             break;
         }
         case DBG: {
-            u64 num = pop_u64_from_stack(&vm->stack);
+            u64 num = pop_u64_from_stack(vm);
             printf("%llu", num);
             break;
         }
@@ -257,14 +331,14 @@ void execute_byte(VM *vm, OpCode op) {
         case INC: {
             VERBOSE_LOG("[%zx] Incrementing the top stack value\n", vm->pc);
 
-            u64 value = pop_u64_from_stack(&vm->stack);
+            u64 value = pop_u64_from_stack(vm);
             push_u64_to_stack(&vm->stack, value + 1);
             break;
         }
         case DEC: {
             VERBOSE_LOG("[%zx] Decrementing the top stack value\n", vm->pc);
 
-            u64 value = pop_u64_from_stack(&vm->stack);
+            u64 value = pop_u64_from_stack(vm);
             push_u64_to_stack(&vm->stack, value - 1);
             break;
         }
@@ -287,7 +361,7 @@ void execute_byte(VM *vm, OpCode op) {
         case DUP: {
             VERBOSE_LOG("[%zx] Duplicating the top stack value\n", vm->pc);
 
-            u64 value = pop_u64_from_stack(&vm->stack);
+            u64 value = pop_u64_from_stack(vm);
             push_u64_to_stack(&vm->stack, value);
             push_u64_to_stack(&vm->stack, value);
             break;
@@ -295,24 +369,24 @@ void execute_byte(VM *vm, OpCode op) {
         case SWP: {
             VERBOSE_LOG("[%zx] Swapping the top two stack values\n", vm->pc);
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             push_u64_to_stack(&vm->stack, a);
             push_u64_to_stack(&vm->stack, b);
             break;
         }
         case DRP: {
-            (void) pop_u64_from_stack(&vm->stack);
+            (void) pop_u64_from_stack(vm);
             break;
         }
         case ROT: {
             VERBOSE_LOG("[%zx] Rotating top 3 values in the stack\n", vm->pc);
             ASSERT(vm->stack.sp >= 3, "Stack has enough values\n");
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
-            u64 c = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
+            u64 c = pop_u64_from_stack(vm);
 
             push_u64_to_stack(&vm->stack, b);
             push_u64_to_stack(&vm->stack, a);
@@ -323,8 +397,8 @@ void execute_byte(VM *vm, OpCode op) {
             VERBOSE_LOG("[%zx] Duplicating the value below the top of the stack\n", vm->pc);
             ASSERT(vm->stack.sp >= 2, "Stack has enough values\n");
 
-            u64 a = pop_u64_from_stack(&vm->stack);
-            u64 b = pop_u64_from_stack(&vm->stack);
+            u64 a = pop_u64_from_stack(vm);
+            u64 b = pop_u64_from_stack(vm);
 
             push_u64_to_stack(&vm->stack, b);
             push_u64_to_stack(&vm->stack, a);
@@ -336,6 +410,14 @@ void execute_byte(VM *vm, OpCode op) {
 
             printf("The stack at this point:\n");
             debug_stack(&vm->stack);
+
+            printf("The call stack at this point:\n");
+            for (usize i = 0; i < vm->call_stack.sp; i++) {
+                StackFrame *frame = &vm->call_stack.storage[i];
+                printf("Frame %#llx (called from %#llx)\n", frame->callee, frame->caller_site);
+            }
+            printf("-------\n");
+
             // vm->pc = vm->program->size;
             break;
         }
@@ -366,6 +448,12 @@ void execute(Program *program) {
 
 void debug_execute(Program *program) {
     VM vm = {0};
+    StackFrame global_stack_frame = {
+        .caller_site = 0,
+        .callee = 0,
+        .stack_start = 0
+    };
+    push_to_call_stack(&vm.call_stack, global_stack_frame);
     vm.program = program;
 
     while (vm.pc < program->size) {

@@ -99,21 +99,23 @@ void grow_inst_array_to_fit(InstructionArray* array, usize new_elements) {
 }
 
 Instruction *insert_inst_array(InstructionArray *a, Instruction element) {
-  // a->size is the number of used entries, because a->array[a->size++] updates a->size only *after* the array has been accessed.
-  // Therefore a->size can go up to a->capacity 
-  if (a->count == a->capacity) {
-    LOG("Growing the array to %zu\n", a->capacity * 2);
+    // a->size is the number of used entries, because a->array[a->size++] updates a->size only *after* the array has been accessed.
+    // Therefore a->size can go up to a->capacity 
+    if (a->count == a->capacity) {
+        LOG("Growing the array to %zu\n", a->capacity * 2);
 
-    a->capacity *= 2;
-    a->data = realloc(a->data, a->capacity * sizeof(Instruction));
-    if (a->data == NULL) {
-        ERROR("Could not reallocate the memory for growing instruction array");
+        a->capacity *= 2;
+        a->data = realloc(a->data, a->capacity * sizeof(Instruction));
+        if (a->data == NULL) {
+            ERROR("Could not reallocate the memory for growing instruction array");
+        }
     }
-  }
-  usize index = a->count++;
-  a->data[index] = element;
+    usize index = a->count++;
+    a->data[index] = element;
 
-  return a->data + index;
+    VERBOSE_LOG("Pushed %s instruction into array\n", opcode_to_str(element.opcode));
+    VERBOSE_LOG("Instruction array now has %zu elements\n", a->count);
+    return a->data + index;
 }
 
 void free_inst_array(InstructionArray *a) {
@@ -270,6 +272,7 @@ void clone_to_program(ProgramBuilder *builder, Program *program) {
     }
 
     // And copy the instructions
+    VERBOSE_LOG("About to copy %zu instructions to the program\n", builder->instructions.count);
     for (usize i = 0; i < builder->instructions.count; i++) {
         Instruction *inst = &builder->instructions.data[i];
         usize inst_address = addresses[i];

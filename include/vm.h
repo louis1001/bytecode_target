@@ -12,6 +12,19 @@ typedef struct {
     usize sp;
 } Stack;
 
+// CallStack
+typedef struct {
+    u64 caller_site;
+    u64 callee;
+    usize stack_start;
+} StackFrame;
+
+#define MAX_CALLSTACK_SIZE (10 * 1024)
+typedef struct {
+    StackFrame storage[MAX_CALLSTACK_SIZE];
+    usize sp;
+} CallStack;
+
 // VM
 typedef struct {
     usize pc;
@@ -21,13 +34,18 @@ typedef struct {
     BASE_T current_string;
 
     Stack stack;
+    CallStack call_stack;
 } VM;
+
+void push_to_call_stack(CallStack*, StackFrame);
+StackFrame pop_from_call_stack(CallStack*);
+StackFrame * current_stack_frame(CallStack*);
 
 void push_to_stack(Stack*, u8);
 void push_u64_to_stack(Stack*, u64);
 
-u8 pop_from_stack(Stack*);
-u64 pop_u64_from_stack(Stack*);
+u8 pop_from_stack(VM *);
+u64 pop_u64_from_stack(VM *);
 
 u64 get_next_u64_from_program(VM*);
 u64 get_next_u8_from_program(VM*);
