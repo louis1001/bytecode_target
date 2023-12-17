@@ -173,8 +173,11 @@ void debug_print_program_builder(ProgramBuilder *builder) {
         Instruction *inst = &builder->instructions.data[i];
         printf("  [0x%03zx]\t%-s ", addresses[i], opcode_to_str(inst->opcode));
         if (inst->opcode == STR) {
+            u64 size = inst->operands.data[0].as.u64;
+            printf("(%#06llx) ", size);
+
             printf("\"");
-            for (usize j = 0; j < inst->operands.count; j++) {
+            for (usize j = 1; j < inst->operands.count; j++) {
                 Operand *operand = &inst->operands.data[j];
                 char c = operand->as.u8;
                 if (c == *"\n") {
