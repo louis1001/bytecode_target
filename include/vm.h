@@ -42,10 +42,16 @@ StackFrame pop_from_call_stack(CallStack*);
 StackFrame * current_stack_frame(CallStack*);
 
 void push_to_stack(Stack*, u8);
+void push_n_to_stack(Stack*, usize, u8*);
 void push_u64_to_stack(Stack*, u64);
 
 u8 pop_from_stack(VM *);
+void pop_n_from_stack(VM *, usize n, u8* out);
+void pop_n_from_stack(VM *, usize n, u8* out);
 u64 pop_u64_from_stack(VM *);
+
+u8* peek_n_from_stack(VM *, usize n);
+u8* peek_n_from_stack_with_offset(VM *, usize offset, usize n);
 
 u64 get_next_u64_from_program(VM*);
 u64 get_next_u8_from_program(VM*);

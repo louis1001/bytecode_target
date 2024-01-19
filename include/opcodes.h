@@ -38,6 +38,8 @@
     X(REF, 0x30) \
     X(RF8, 0x31) \
     X(PS8, 0x40) \
+    X(DRN, 0x41) \
+    X(DPN, 0x42) \
     X(BKP, 0xFE) \
     X(EXT, 0xFF)
 

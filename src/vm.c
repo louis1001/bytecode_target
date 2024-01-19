@@ -26,6 +26,17 @@ void push_to_stack(Stack* st, u8 value) {
     st->storage[st->sp++] = value;
 }
 
+void push_n_to_stack(Stack* st, usize n, u8* values) {
+    ASSERT((st->sp + n) <= MAX_STACK_SIZE, "Max stack size exceeded.\n");
+
+    u8 *dest = &st->storage[st->sp];
+    memcpy(dest, values, n);
+
+    ASSERT(dest != NULL, "Failed to push new values");
+
+    st->sp += n;
+}
+
 void push_u64_to_stack(Stack* st, u64 value) {
     ASSERT(st->sp + sizeof(u64) < MAX_STACK_SIZE, "Max stack size exceeded.\n");
 
@@ -39,6 +50,22 @@ u8 pop_from_stack(VM *vm) {
     ASSERT(stack->sp - 1 >= current_frame->stack_start, "Invalid access out of stack frame bounds.\n");
 
     return stack->storage[--stack->sp];
+}
+
+void pop_n_from_stack(VM *vm, usize n, u8* out) {
+    Stack *stack = &vm->stack;
+    StackFrame *current_frame = current_stack_frame(&vm->call_stack);
+    ASSERT(
+        stack->sp - n >= current_frame->stack_start,
+        "Invalid access out of stack frame bounds.\n"
+        "Trying to pop %zu elements from stack (%zu), but the bound is at %zu",
+        n,
+        stack->sp,
+        current_frame->stack_start
+    );
+
+    memcpy(out, &stack->storage[stack->sp - n], n);
+    stack->sp -= n;
 }
 
 u64 pop_u64_from_stack(VM *vm) {
@@ -56,6 +83,21 @@ u64 pop_u64_from_stack(VM *vm) {
     memcpy(&value, &stack->storage[stack->sp - sizeof(u64)], sizeof(u64));
     stack->sp -= sizeof(u64);
     return value;
+}
+
+u8* peek_n_from_stack_with_offset(VM *vm, usize offset, usize n) {
+    // TODO: For now, it just gives back a pointer to the start of sp - offset.
+    // Doesn't do anything with n
+    Stack *stack = &vm->stack;
+    StackFrame *current_frame = current_stack_frame(&vm->call_stack);
+    ASSERT(offset >= n, "Invalid access to stack: offset is less than the fetch size\n");
+    ASSERT(stack->sp - offset >= current_frame->stack_start, "Invalid access out of stack frame bounds.\n");
+
+    return &stack->storage[stack->sp - offset];
+}
+
+u8* peek_n_from_stack(VM *vm, usize n) {
+    return peek_n_from_stack_with_offset(vm, n, n);
 }
 
 void debug_stack(Stack *stack) {
@@ -403,6 +445,25 @@ void execute_byte(VM *vm, OpCode op) {
             push_u64_to_stack(&vm->stack, b);
             push_u64_to_stack(&vm->stack, a);
             push_u64_to_stack(&vm->stack, b);
+            break;
+        }
+        // FIXME: Is this fine? Does it defeat the purpose of a stack machine?
+        case DRN: {
+            VERBOSE_LOG("[%zx] Droping n bytes from the stack\n", vm->pc);
+            u64 n = get_next_u64_from_program(vm);
+
+            u8 result[n];
+            pop_n_from_stack(vm, n, &result[0]);
+            break;
+        }
+        case DPN: {
+            VERBOSE_LOG("[%zx] Duping n bytes on the stack\n", vm->pc);
+            u64 off = get_next_u64_from_program(vm);
+            u64 n = get_next_u64_from_program(vm);
+
+            u8 *result = peek_n_from_stack_with_offset(vm, off, n);
+
+            push_n_to_stack(&vm->stack, n, result);
             break;
         }
         case BKP: {
