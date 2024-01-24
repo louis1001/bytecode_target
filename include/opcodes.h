@@ -6,40 +6,60 @@
 // https://stackoverflow.com/questions/147267/easy-way-to-use-variables-of-enum-types-as-string-in-c
 #define OPCODES \
     X(NOP, 0x00) \
-    X(LDR, 0x02) \
-    X(ADD, 0x03) \
-    X(SUB, 0x04) \
-    X(MOD, 0x05) \
-    X(DIV, 0x06) \
-    X(MUL, 0x07) \
-    X(EQU, 0x08) \
-    X(LT , 0x09) \
-    X(JMP, 0x0A) \
-    X(JPT, 0x0B) \
-    X(JPF, 0x0C) \
-    X(CLL, 0x0d) \
-    X(STR, 0x0E) \
-    X(PTS, 0x0F) \
-    X(DBG, 0x10) \
-    X(INC, 0x11) \
-    X(DEC, 0x12) \
-    X(PSH, 0x13) \
-    X(DUP, 0x14) \
-    X(SWP, 0x15) \
-    X(DRP, 0x16) \
-    X(ROT, 0x17) \
-    X(OVR, 0x18) \
-    X(GT , 0x1B) \
-    X(PTC, 0x20) \
-    X(NOT, 0x21) \
-    X(OR , 0x22) \
-    X(RET, 0x23) \
-    X(TKS, 0x24) \
-    X(REF, 0x30) \
-    X(RF8, 0x31) \
-    X(PS8, 0x40) \
-    X(DRN, 0x41) \
-    X(DPN, 0x42) \
+/* u64 opcodes */\
+    X(ADD, 0x01) \
+    X(SUB, 0x02) \
+    X(MOD, 0x03) \
+    X(DIV, 0x04) \
+    X(MUL, 0x05) \
+    X(EQU, 0x06) \
+    X(LT , 0x07) \
+    X(DBG, 0x08) \
+    X(INC, 0x09) \
+    X(DEC, 0x0A) \
+    X(PSH, 0x0B) \
+    X(DUP, 0x0C) \
+    X(SWP, 0x0D) \
+    X(DRP, 0x0E) \
+    X(OVR, 0x0F) \
+    X(GT , 0x10) \
+    X(REF, 0x11) \
+    X(ROT, 0x12) \
+/* u8 opcodes */ \
+    X(RF8, 0x30) \
+    X(PS8, 0x31) \
+/* func related opcodes */ \
+    X(RET, 0x40) \
+    X(TKS, 0x41) \
+    X(CLL, 0x42) \
+/* typed opcodes */ \
+    X(ADDZ, 0x81) \
+    X(SUBZ, 0x82) \
+    X(MODZ, 0x83) \
+    X(DIVZ, 0x84) \
+    X(MULZ, 0x85) \
+    X(EQUZ, 0x86) \
+    X(LTZ , 0x87) \
+    X(DBGZ, 0x88) \
+    X(INCZ, 0x89) \
+    X(DECZ, 0x8A) \
+    X(PSHZ, 0x8B) \
+    X(DUPZ, 0x8C) \
+    X(SWPZ, 0x8D) \
+    X(DRPZ, 0x8E) \
+    X(OVRZ, 0x8F) \
+    X(GTZ , 0x90) \
+    X(REFZ, 0x91) \
+/* logical opcodes*/ \
+    X(NOT, 0xA0) \
+    X(OR , 0xA1) \
+/* misc opcodes */ \
+    X(JMP, 0xB0) \
+    X(JPT, 0xB1) \
+    X(JPF, 0xB2) \
+    X(PTC, 0xB3) \
+    X(PTS, 0xB4) \
+    X(STR, 0xB5) \
     X(BKP, 0xFE) \
     X(EXT, 0xFF)
 

@@ -448,7 +448,7 @@ void execute_byte(VM *vm, OpCode op) {
             break;
         }
         // FIXME: Is this fine? Does it defeat the purpose of a stack machine?
-        case DRN: {
+        case DRPZ: {
             VERBOSE_LOG("[%zx] Droping n bytes from the stack\n", vm->pc);
             u64 n = get_next_u64_from_program(vm);
 
@@ -456,7 +456,7 @@ void execute_byte(VM *vm, OpCode op) {
             pop_n_from_stack(vm, n, &result[0]);
             break;
         }
-        case DPN: {
+        case DUPZ: {
             VERBOSE_LOG("[%zx] Duping n bytes on the stack\n", vm->pc);
             u64 off = get_next_u64_from_program(vm);
             u64 n = get_next_u64_from_program(vm);
@@ -482,12 +482,26 @@ void execute_byte(VM *vm, OpCode op) {
             // vm->pc = vm->program->size;
             break;
         }
+        case SWPZ: {
+            VERBOSE_LOG("[%zx] Swapping (with sizing) the top two stack values\n", vm->pc);
+            u64 n = get_next_u64_from_program(vm);
+
+            u8 a[n];
+            pop_n_from_stack(vm, n, a);
+
+            u8 b[n];
+            pop_n_from_stack(vm, n, b);
+
+            push_n_to_stack(&vm->stack, n, a);
+            push_n_to_stack(&vm->stack, n, b);
+            break;
+        }
         default: {
             char *opcode_name = opcode_to_str(op);
             if (opcode_name != NULL) {
                 ERROR("Opcode %s not implemented\n", opcode_name);
             } else {
-                ERROR("Invalid opcode 0x%x\n", op);
+                ERROR("Invalid opcode %#x\n", op);
             }
             break;
         }
