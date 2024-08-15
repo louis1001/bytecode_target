@@ -3,7 +3,7 @@ loop:
     dup 
     psh 3
     mod 
-    psh 1
+    psh 0
     equ
     psh 'print_fizz
     jpt 
@@ -46,7 +46,7 @@ newline:
     pts 
     inc 
     dup 
-    psh 40
+    psh 100
     lt 
     psh 'loop
     jpt 

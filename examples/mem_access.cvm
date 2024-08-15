@@ -10,9 +10,9 @@ start:
     rf8              # | len str_ptr 'W' |
     # ref -> 64bit | rf8 -> 8bit
     # Output: Y
-    pch              # | len str_ptr |
-    swp
+    ptc              # | len str_ptr |
+    swp              # | str_ptr len |
     drp drp # discard the string
 
     str " <- a char accesed via pointer (u8*)\n"
-    pnt
+    pts

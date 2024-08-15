@@ -1,0 +1,26 @@
+psh 'main
+cll
+ext
+
+main:
+    psh 8 alc
+    str "Ptr: " pts
+    dup dbg
+    str "\n" pts
+
+    dup      # | ptr ptr |
+
+    psh 1234 # | ptr ptr u64 |
+    dup dbg
+    str "\n" pts
+    wrtz 8     # | ptr |
+
+    dup      # | ptr ptr |
+    str "Second Ptr: " pts
+    dup dbg
+    str "\n" pts
+    ref      # | ptr u64 |
+    dbg
+    str "\n" pts
+    fre
+    ret

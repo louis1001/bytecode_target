@@ -29,7 +29,7 @@ void build_program(ProgramBuilder *builder) {
     emit_plain_instruction(builder, DUP);
     emit_push(builder, 3);
     emit_plain_instruction(builder, MOD);
-    emit_push(builder, 0);
+    emit_push(builder, 1);
     emit_plain_instruction(builder, EQU);
 
     emit_jump_if_true(builder, print_fizz_label);
@@ -107,9 +107,11 @@ void execute_example(void) {
     print_program(&program);
     #endif
 
-    printf("FizzBuzz Example:\n");
+    #if DEBUG
+    debug_execute(&program);
+    #else
     execute(&program);
-    // debug_execute(&program);
+    #endif
 
     destroy_program(&program);
 }
