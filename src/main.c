@@ -14,6 +14,12 @@ void dump_program_to_file(Program *program, char *file_path) {
 
 void build_program(ProgramBuilder *builder) {
     // FizzBuzz
+    LABEL_T main_label = create_label(builder);
+    emit_push_label(builder, main_label);
+    emit_plain_instruction(builder, CLL);
+    emit_plain_instruction(builder, EXT);
+
+    link_label(builder, main_label);
     emit_push(builder, 1);
 
     LABEL_T loop_label = create_label(builder);
@@ -85,7 +91,7 @@ void build_program(ProgramBuilder *builder) {
     emit_plain_instruction(builder, LT);
     emit_jump_if_true(builder, loop_label);
 
-    emit_plain_instruction(builder, EXT);
+    emit_plain_instruction(builder, RET);
 }
 
 void execute_example(void) {

@@ -424,6 +424,7 @@ void execute_byte(VM *vm, OpCode op) {
         }
         case ROT: {
             VERBOSE_LOG("[%zx] Rotating top 3 values in the stack\n", vm->pc);
+            // TODO: Fix these asserts. This one is counting 1u8
             ASSERT(vm->stack.sp >= 3, "Stack has enough values\n");
 
             u64 a = pop_u64_from_stack(vm);
@@ -445,6 +446,31 @@ void execute_byte(VM *vm, OpCode op) {
             push_u64_to_stack(&vm->stack, b);
             push_u64_to_stack(&vm->stack, a);
             push_u64_to_stack(&vm->stack, b);
+            break;
+        }
+        case ALC: {
+            VERBOSE_LOG("[%zx] Allocating 64 bits on the stack\n", vm->pc);
+
+            u64 size = pop_u64_from_stack(vm);
+            void *ptr = malloc(size);
+
+            push_u64_to_stack(&vm->stack, (u64) ptr);
+            break;
+        }
+        case WRT: {
+            VERBOSE_LOG("[%zx] Writing to a pointer\n", vm->pc);
+
+            u64 value = pop_u64_from_stack(vm);
+            u64 *ptr = (u64*)pop_u64_from_stack(vm);
+
+            *ptr = value;
+            break;
+        }
+        case FRE: {
+            VERBOSE_LOG("[%zx] Freeing a pointer\n", vm->pc);
+
+            u64 ptr = pop_u64_from_stack(vm);
+            free((void*)ptr);
             break;
         }
         // FIXME: Is this fine? Does it defeat the purpose of a stack machine?
@@ -496,6 +522,18 @@ void execute_byte(VM *vm, OpCode op) {
             push_n_to_stack(&vm->stack, n, b);
             break;
         }
+        case WRTZ: {
+            VERBOSE_LOG("[%zx] Writing n bytes to a pointer\n", vm->pc);
+            u64 n = get_next_u64_from_program(vm);
+
+            u8 value[n];
+            pop_n_from_stack(vm, n, value);
+
+            u64 ptr = pop_u64_from_stack(vm);
+
+            memcpy((void*)ptr, value, n);
+            break;
+        }
         default: {
             char *opcode_name = opcode_to_str(op);
             if (opcode_name != NULL) {
@@ -510,6 +548,12 @@ void execute_byte(VM *vm, OpCode op) {
 
 void execute(Program *program) {
     VM vm = {0};
+    StackFrame global_stack_frame = {
+        .caller_site = 0,
+        .callee = 0,
+        .stack_start = 0
+    };
+    push_to_call_stack(&vm.call_stack, global_stack_frame);
     vm.program = program;
 
     while (vm.pc < program->size) {

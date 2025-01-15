@@ -13,7 +13,7 @@ main:
     psh 1234 # | ptr ptr u64 |
     dup dbg
     str "\n" pts
-    wrtz 8     # | ptr |
+    wrt      # | ptr |
 
     dup      # | ptr ptr |
     str "Second Ptr: " pts

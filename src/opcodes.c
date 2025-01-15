@@ -30,3 +30,7 @@ bool string_to_opcode(OpCode *dst, char *str) {
 
     return false;
 }
+
+#define X(name, val) + 1
+const int OPCODE_COUNT = 0 OPCODES;
+#undef X

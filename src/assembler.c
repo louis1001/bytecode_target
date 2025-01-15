@@ -150,6 +150,16 @@ void resolve_instruction(Assembler *assembler, StringBuffer *buf, ProgramBuilder
             free_string_buffer(&literal);
             break;
         }
+        // All 'Z' instructions have a single u64 operand
+        case ADDZ: case SUBZ: case MODZ: case DIVZ: case MULZ:
+        case EQUZ: case LTZ: case DBGZ: case INCZ: case DECZ:
+        case PSHZ: case DUPZ: case SWPZ: case DRPZ: case OVRZ:
+        case GTZ: case REFZ: case WRTZ: {
+            assemble_ignore_spaces(assembler);
+            u64 operand = assemble_u64_literal(assembler);
+            emit_sized_instruction(pb, opcode, operand);
+            break;
+        }
         default: { // In case the instruction has no operands, just emit a plain instruction
             emit_plain_instruction(pb, opcode);
             break;

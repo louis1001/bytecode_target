@@ -70,7 +70,7 @@ loop_label:
     emit_plain_instruction(builder, ROT);
     // Stack => | b a a |
     emit_plain_instruction(builder, ADD);
-    // Stack => | c b |
+    // Stack => | c a |
 
     emit_plain_instruction(builder, DUP);
     emit_plain_instruction(builder, DBG);

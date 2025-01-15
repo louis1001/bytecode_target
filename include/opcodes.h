@@ -25,9 +25,13 @@
     X(GT , 0x10) \
     X(REF, 0x11) \
     X(ROT, 0x12) \
+    X(ALC, 0x13) \
+    X(WRT, 0x14) \
+    X(FRE, 0x15) \
 /* u8 opcodes */ \
     X(RF8, 0x30) \
     X(PS8, 0x31) \
+    X(WR8, 0x32) \
 /* func related opcodes */ \
     X(RET, 0x40) \
     X(TKS, 0x41) \
@@ -50,6 +54,7 @@
     X(OVRZ, 0x8F) \
     X(GTZ , 0x90) \
     X(REFZ, 0x91) \
+    X(WRTZ, 0x92) \
 /* logical opcodes*/ \
     X(NOT, 0xA0) \
     X(OR , 0xA1) \
@@ -64,10 +69,13 @@
     X(EXT, 0xFF)
 
 #define X(name, val) name = val,
-typedef enum {
+enum _opcode {
     OPCODES
-} OpCode;
+};
+typedef enum _opcode OpCode;
 #undef X
+
+const int OPCODE_COUNT;
 
 // PNT -> Considers the top of the stack a number with the length and a pointer to string and prints it
 // By default, all stack operations will work on 64-bit values

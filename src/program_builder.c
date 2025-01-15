@@ -381,6 +381,13 @@ void emit_str(ProgramBuilder *builder, char *str) {
     emit_instruction_with_operands(builder, STR, first, len + 1);
 }
 
+void emit_sized_instruction(ProgramBuilder *builder, OpCode opcode, u64 value) {
+    Operand operand = {0};
+    operand.type = OPERAND_U64;
+    operand.as.u64 = value;
+    emit_instruction(builder, opcode, 1, operand);
+}
+
 void emit_jump(ProgramBuilder* builder, LABEL_T target) {
     emit_push_label(builder, target); // target is the label index
 

@@ -78,6 +78,7 @@ void emit_nop(ProgramBuilder*);
 void emit_push(ProgramBuilder*, BASE_T value);
 void emit_push_label(ProgramBuilder*, BASE_T label);
 void emit_str(ProgramBuilder*, char*);
+void emit_sized_instruction(ProgramBuilder*, OpCode, u64);
 void emit_jump(ProgramBuilder*, LABEL_T);
 void emit_jump_if_true(ProgramBuilder*, LABEL_T label);
 void emit_jump_if_false(ProgramBuilder*, LABEL_T label);
